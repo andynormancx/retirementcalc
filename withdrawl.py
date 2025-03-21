@@ -36,11 +36,11 @@ def calculate_zero_balance_age_scenarios_adjusted(initial_balance, birth_year, s
             # Simulate until balance reaches zero or max year reached
             while balance > 0 and year < max_year:
                 andy_age = year - birth_year
-                eryl_age = year - 1960
+                erly_age = year - 1960
                 
                 annual_state_pension = 0
                 
-                if eryl_age >= 67:
+                if erly_age >= 67:
                     annual_state_pension += 12000
                 if andy_age >= 68:
                     annual_state_pension += 12000
@@ -49,8 +49,14 @@ def calculate_zero_balance_age_scenarios_adjusted(initial_balance, birth_year, s
                 balance *= (1 + annual_return_decimal)
 
                 # Calculate annual withdrawal with inflation adjustment
-                annual_withdrawal = withdrawal * 12 * ((1 + inflation_rate_decimal) ** (year - start_year))
-                annual_withdrawal = annual_withdrawal - annual_state_pension
+                monthly_withdrawal = withdrawal
+                withdrawalRates.forEach(rate => {
+                    if (firstAge === rate.age) {
+                        monthly_withdrawal = rate.amount;
+                    }
+                });
+                const annualWithdrawal = monthly_withdrawal * 12 * Math.pow(1 + inflationRate, year - startYear);
+                annual_withdrawal = annual_withdrawal - annual_state_pension;
 
                 # Subtract the annual withdrawal
                 balance -= annual_withdrawal
