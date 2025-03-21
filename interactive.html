@@ -6,6 +6,36 @@
     <title>Interactive Retirement Projection</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.6.4/math.min.js"></script>
+    <style>
+        #projectionTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1em;
+            font-family: Arial, sans-serif;
+        }
+  
+        #projectionTable th,
+        #projectionTable td {
+            padding: 8px 12px;
+            text-align: right;
+        }
+  
+        #projectionTable thead {
+            background-color: #f0f0f0;
+        }
+  
+        #projectionTable th {
+            text-align: center;
+        }
+  
+        #projectionTable tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+  
+        #projectionTable tr:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
 </head>
 <body>
     <h1>Interactive Retirement Projection</h1>
@@ -32,7 +62,7 @@
     </div>
     <div>
         <label for="secondBirthYear">Second Birth Year:</label>
-        <input type="number" id="secondBirthYear" value="1975">
+        <input type="number" id="secondBirthYear" value="1960">
     </div>
     <div>
         <label for="firstStatePensionAge">First State Pension Age:</label>
@@ -50,10 +80,34 @@
     <h2>Lump Sums</h2>
     <div id="lumpSumsContainer"></div>
     <button onclick="addLumpSum()">Add Lump Sum</button>
+
+    <h2>Withdrawal Rates</h2>
+    <div id="withdrawalRatesContainer"></div>
+    <button onclick="addWithdrawalRate()">Add Withdrawal Rate</button>
     
+    <h2>Projection</h2>
     <button onclick="generateProjection()">Generate Projection</button>
+    <div id="zeroBalanceAgeMessage" style="margin-top: 1em; font-weight: bold;"></div>
 
     <div id="chart"></div>
+    
+    <h2>Projection Table</h2>
+    <table id="projectionTable" border="1" cellspacing="0" cellpadding="4">
+        <thead>
+            <tr>
+                <th>Year</th>
+                <th>Age (First)</th>
+                <th>Age (Second)</th>
+                <th>State Pension (£)</th>
+                <th>Monthly Withdrawal (£)</th>
+                <th>Lump Sum (£)</th>
+                <th>Gain/Loss (£)</th>
+                <th>Gain/Loss (%)</th>
+                <th>End Balance (£)</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
 
     <script>
         function addLumpSum(age = '', amount = '') {
@@ -81,6 +135,31 @@
             return lumpSums;
         }
 
+        function addWithdrawalRate(age = '', amount = '') {
+            const container = document.getElementById('withdrawalRatesContainer');
+            const div = document.createElement('div');
+            div.className = 'withdrawal-rate-entry';
+            div.innerHTML = `
+                <label>Age: <input type="number" class="withdrawalAge" value="${age}"></label>
+                <label>Monthly Amount (£): <input type="number" class="withdrawalAmount" value="${amount}"></label>
+                <button onclick="this.parentElement.remove()">Remove</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function getWithdrawalRates() {
+            const entries = document.querySelectorAll('.withdrawal-rate-entry');
+            const rates = [];
+            entries.forEach(entry => {
+                const age = parseInt(entry.querySelector('.withdrawalAge').value);
+                const amount = parseFloat(entry.querySelector('.withdrawalAmount').value);
+                if (!isNaN(age) && !isNaN(amount)) {
+                    rates.push({ age, amount });
+                }
+            });
+            return rates;
+        }
+
         function generateProjection() {
             const initialBalance = parseFloat(document.getElementById('initialBalance').value);
             const annualReturn = parseFloat(document.getElementById('annualReturn').value) / 100;
@@ -92,21 +171,28 @@
             const firstStatePensionAge = parseInt(document.getElementById('firstStatePensionAge').value);
             const secondStatePensionAge = parseInt(document.getElementById('secondStatePensionAge').value);
 
+            const formatCurrency = value => Math.round(value).toLocaleString('en-UK');
+
             let balance = initialBalance;
             const years = [];
             const balances = [];
             const statePensions = [];
             const agesFirst = [];
             const agesSecond = [];
+            const annualWithdrawls = [];
 
             const startYear = new Date().getFullYear();
             const maxYears = 100;
+
+            const tableBody = document.getElementById('projectionTable').querySelector('tbody');
+            tableBody.innerHTML = '';
 
             let year = startYear;
             let firstAge = year - firstBirthYear;
             let secondAge = year - secondBirthYear;
 
             const lumpSums = getLumpSums();
+            const withdrawalRates = getWithdrawalRates();
 
             for (; year < startYear + maxYears && balance > 0 && firstAge <= 95; year++) {
                 firstAge = year - firstBirthYear;
@@ -124,7 +210,13 @@
                 
                 console.log(firstAge);
               
-                const annualWithdrawal = withdrawal * 12 * Math.pow(1 + inflationRate, year - startYear);
+                let monthlyWithdrawal = withdrawal;
+                withdrawalRates.forEach(rate => {
+                    if (firstAge === rate.age) {
+                        monthlyWithdrawal = rate.amount;
+                    }
+                });
+                const annualWithdrawal = monthlyWithdrawal * 12 * Math.pow(1 + inflationRate, year - startYear);
                 balance = balance * (1 + annualReturn) - annualWithdrawal;
                 balance += annualStatePension;
 
@@ -136,11 +228,37 @@
 
                 balance = Math.max(balance, 0);
 
+                const prevBalance = balances.length > 0 ? balances[balances.length - 1] : initialBalance;
+                const gainLoss = balance - prevBalance;
+                const gainLossPct = prevBalance > 0 ? (gainLoss / prevBalance) * 100 : 0;
+
+                let lumpTotal = 0;
+                lumpSums.forEach(({ age, amount }) => {
+                    if (firstAge === age) {
+                        lumpTotal += amount;
+                    }
+                });
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${year}</td>
+                    <td>${firstAge}</td>
+                    <td>${secondAge}</td>
+                    <td>${formatCurrency(annualStatePension)}</td>
+                    <td>${formatCurrency(annualWithdrawal/12)}</td>
+                    <td>${formatCurrency(lumpTotal)}</td>
+                    <td>${formatCurrency(gainLoss)}</td>
+                    <td>${gainLossPct.toFixed(2)}%</td>
+                    <td>${formatCurrency(balance)}</td>
+                `;
+                tableBody.appendChild(row);
+
                 years.push(year);
                 balances.push(Math.round(balance, 0));
                 agesFirst.push(firstAge);
                 agesSecond.push(secondAge);
                 statePensions.push(Math.round(annualStatePension, 0));
+                annualWithdrawls.push(annualWithdrawal);
             }
 
             const traceBalances = {
@@ -161,16 +279,50 @@
                 line: { color: 'green' }
             };
 
-            const data = [traceBalances, traceStatePension];
+            const traceAnnualWithdrawls = {
+                x: agesFirst,
+                y: annualWithdrawls,
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Annual (£)',
+                line: { color: 'red' }
+            };
+
+
+            const data = [traceBalances, traceStatePension, traceAnnualWithdrawls];
 
             const layout = {
                 title: 'Retirement Balance Over Time',
-                xaxis: { title: 'Age' },
+                xaxis: { title: 'Age', range: [startYear - firstBirthYear, 95] },
                 yaxis: { title: 'Balance (£)', tickformat: ',' },
+                height: 600
             };
 
+            const zeroBalanceIndex = balances.findIndex(b => b === 0);
+            const messageDiv = document.getElementById('zeroBalanceAgeMessage');
+            if (zeroBalanceIndex !== -1) {
+                const zeroAge = agesFirst[zeroBalanceIndex];
+                if (zeroAge < 95) {
+                    messageDiv.innerHTML = `⚠️ Balance reaches zero at age ${zeroAge}.`;
+                    messageDiv.style.color = 'red';
+                } else {
+                    messageDiv.innerHTML = `✅ Balance does not reach zero before age 95 (final age: ${zeroAge}).`;
+                    messageDiv.style.color = 'green';
+                }
+            } else {
+                messageDiv.innerHTML = '✅ Balance never reaches zero.';
+                messageDiv.style.color = 'green';
+            }
             Plotly.newPlot('chart', data, layout);
         }
+
+        window.onload = function () {
+            const currentYear = new Date().getFullYear();
+            const currentAge = currentYear - parseInt(document.getElementById('firstBirthYear').value);
+            addWithdrawalRate(currentAge, 4000);
+            addWithdrawalRate(75, 3500);
+            addLumpSum(currentAge, -90000);
+        };
     </script>
 </body>
 </html>
