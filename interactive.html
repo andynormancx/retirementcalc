@@ -53,8 +53,8 @@
         <input type="number" id="inflationRate" value="2.0">
     </div>
     <div>
-        <label for="withdrawal">Monthly Withdrawal (£):</label>
-        <input type="number" id="withdrawal" value="3000">
+        <label for="grossIncome">Monthly Gross Income (£):</label>
+        <input type="number" id="grossIncome" value="3000">
     </div>
     <div>
         <label for="firstBirthYear">First Birth Year:</label>
@@ -81,10 +81,14 @@
     <div id="lumpSumsContainer"></div>
     <button onclick="addLumpSum()">Add Lump Sum</button>
 
-    <h2>Withdrawal Rates</h2>
-    <div id="withdrawalRatesContainer"></div>
-    <button onclick="addWithdrawalRate()">Add Withdrawal Rate</button>
-    
+    <h2>Monthly Gross Income Rates</h2>
+    <div id="grossIncomeRatesContainer"></div>
+    <button onclick="addGrossIncomeRate()">Add Gross Income Rate</button>
+
+    <h2>Other Gross Annual Income</h2>
+    <div id="otherAnnualIncomeContainer"></div>
+    <button onclick="addOtherAnnualIncome()">Add Other Gross Annual Income</button>
+
     <h2>Projection</h2>
     <button onclick="generateProjection()">Generate Projection</button>
     <div id="zeroBalanceAgeMessage" style="margin-top: 1em; font-weight: bold;"></div>
@@ -98,9 +102,14 @@
                 <th>Year</th>
                 <th>Age (First)</th>
                 <th>Age (Second)</th>
-                <th>State Pension (£)</th>
-                <th>Monthly Withdrawal (£)</th>
+                <th>Monthly Inc (no infl) (£)</th>
+                <th>Monthly State Pension (£)</th>
+                <th>Monthly Inc (£)</th>
+                <th>Req Monthly Withdrawal (£)</th>
+                <th>Other Annual Gross (£)</th>
                 <th>Lump Sum (£)</th>
+                <th>Req Annual Withdrawal (£)</th>
+                <th>Invest Gain (£)</th>
                 <th>Gain/Loss (£)</th>
                 <th>Gain/Loss (%)</th>
                 <th>End Balance (£)</th>
@@ -110,6 +119,31 @@
     </table>
 
     <script>
+        function addOtherAnnualIncome(age = '', amount = '') {
+            const container = document.getElementById('otherAnnualIncomeContainer');
+            const div = document.createElement('div');
+            div.className = 'otherAnnualIncome-entry';
+            div.innerHTML = `
+                <label>Age: <input type="number" class="otherAnnualIncomeAge" value="${age}"></label>
+                <label>Amount (£): <input type="number" class="otherAnnualIncomeAmount" value="${amount}"></label>
+                <button onclick="this.parentElement.remove()">Remove</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function getOtherAnnualIncome() {
+            const entries = document.querySelectorAll('.otherAnnualIncome-entry');
+            const otherAnnualIncomes = [];
+            entries.forEach(entry => {
+                const age = parseInt(entry.querySelector('.otherAnnualIncomeAge').value);
+                const amount = parseFloat(entry.querySelector('.otherAnnualIncomeAmount').value);
+                if (!isNaN(age) && !isNaN(amount)) {
+                    otherAnnualIncomes.push({ age, amount });
+                }
+            });
+            return otherAnnualIncomes;
+        }
+
         function addLumpSum(age = '', amount = '') {
             const container = document.getElementById('lumpSumsContainer');
             const div = document.createElement('div');
@@ -135,24 +169,24 @@
             return lumpSums;
         }
 
-        function addWithdrawalRate(age = '', amount = '') {
-            const container = document.getElementById('withdrawalRatesContainer');
+        function addGrossIncomeRate(age = '', amount = '') {
+            const container = document.getElementById('grossIncomeRatesContainer');
             const div = document.createElement('div');
-            div.className = 'withdrawal-rate-entry';
+            div.className = 'grossincome-rate-entry';
             div.innerHTML = `
                 <label>Age: <input type="number" class="withdrawalAge" value="${age}"></label>
-                <label>Monthly Amount (£): <input type="number" class="withdrawalAmount" value="${amount}"></label>
+                <label>Monthly Amount (£): <input type="number" class="grossIncomeAmount" value="${amount}"></label>
                 <button onclick="this.parentElement.remove()">Remove</button>
             `;
             container.appendChild(div);
         }
 
-        function getWithdrawalRates() {
-            const entries = document.querySelectorAll('.withdrawal-rate-entry');
+        function getGrossIncomeRateRates() {
+            const entries = document.querySelectorAll('.grossincome-rate-entry');
             const rates = [];
             entries.forEach(entry => {
                 const age = parseInt(entry.querySelector('.withdrawalAge').value);
-                const amount = parseFloat(entry.querySelector('.withdrawalAmount').value);
+                const amount = parseFloat(entry.querySelector('.grossIncomeAmount').value);
                 if (!isNaN(age) && !isNaN(amount)) {
                     rates.push({ age, amount });
                 }
@@ -164,7 +198,7 @@
             const initialBalance = parseFloat(document.getElementById('initialBalance').value);
             const annualReturn = parseFloat(document.getElementById('annualReturn').value) / 100;
             const inflationRate = parseFloat(document.getElementById('inflationRate').value) / 100;
-            const withdrawal = parseFloat(document.getElementById('withdrawal').value);
+            const grossIncome = parseFloat(document.getElementById('grossIncome').value);
             const firstBirthYear = parseInt(document.getElementById('firstBirthYear').value);
             const secondBirthYear = parseInt(document.getElementById('secondBirthYear').value);
             const initialStatePension = parseFloat(document.getElementById('initialStatePension').value);
@@ -180,6 +214,7 @@
             const agesFirst = [];
             const agesSecond = [];
             const annualWithdrawls = [];
+            const monthlyWithdrawlsBeforeInflation = [];
 
             const startYear = new Date().getFullYear();
             const maxYears = 100;
@@ -191,34 +226,54 @@
             let firstAge = year - firstBirthYear;
             let secondAge = year - secondBirthYear;
 
+            let currentGrossIncome = grossIncome; // Initial value
+
             const lumpSums = getLumpSums();
-            const withdrawalRates = getWithdrawalRates();
+
+            const grossIncomeRates = getGrossIncomeRateRates();
+            grossIncomeRates.sort((a, b) => a.age - b.age); // Ensure chronological order
+
+
+            const otherGrossAnnualIncomeRates = getOtherAnnualIncome();
 
             for (; year < startYear + maxYears && balance > 0 && firstAge <= 95; year++) {
                 firstAge = year - firstBirthYear;
                 secondAge = year - secondBirthYear;              
-                let annualStatePension = 0;
-                const statePension = initialStatePension * Math.pow(1 + inflationRate, year - startYear);
+                let annualStatePensionInflationAdjusted = 0;
+                const statePensionInflationAdjusted = initialStatePension * Math.pow(1 + inflationRate, year - startYear);
 
-              
-                if (firstAge >= 67) {
-                  annualStatePension += statePension;
+                if (firstAge >= firstStatePensionAge) {
+                  annualStatePensionInflationAdjusted += statePensionInflationAdjusted;
                 }
-                if (secondAge >= 67) {
-                  annualStatePension += statePension;
+                if (secondAge >= secondStatePensionAge) {
+                  annualStatePensionInflationAdjusted += statePensionInflationAdjusted;
                 }
                 
                 console.log(firstAge);
               
-                let monthlyWithdrawal = withdrawal;
-                withdrawalRates.forEach(rate => {
-                    if (firstAge === rate.age) {
-                        monthlyWithdrawal = rate.amount;
+                grossIncomeRates.forEach(rate => {
+                    if (firstAge >= rate.age) {
+                        currentGrossIncome = rate.amount; // Update to latest applicable rate
                     }
                 });
-                const annualWithdrawal = monthlyWithdrawal * 12 * Math.pow(1 + inflationRate, year - startYear);
-                balance = balance * (1 + annualReturn) - annualWithdrawal;
-                balance += annualStatePension;
+
+                let otherGrossAnnualIncome = 0;
+                otherGrossAnnualIncomeRates.forEach(rate => {
+                    if (firstAge >= rate.age) {
+                        otherGrossAnnualIncome += rate.amount;
+                    }
+                })
+
+                const otherGrossAnnualIncomeInflationAdjusted = otherGrossAnnualIncome * Math.pow(1 + inflationRate, year - startYear);
+                const annualGrossIncomeInflationAdjusted = currentGrossIncome * 12 * Math.pow(1 + inflationRate, year - startYear);
+
+                const requiredAnnualWithdrawlInflationAdjusted =
+                    Math.max(annualGrossIncomeInflationAdjusted - annualStatePensionInflationAdjusted - otherGrossAnnualIncomeInflationAdjusted, 0);
+                const investmentGain = balance * annualReturn;
+
+                balance = balance + investmentGain;
+                balance -= requiredAnnualWithdrawlInflationAdjusted
+                //balance += annualStatePensionInflationAdjusted;
 
                 lumpSums.forEach(({ age, amount }) => {
                     if (firstAge === age) {
@@ -244,9 +299,14 @@
                     <td>${year}</td>
                     <td>${firstAge}</td>
                     <td>${secondAge}</td>
-                    <td>${formatCurrency(annualStatePension)}</td>
-                    <td>${formatCurrency(annualWithdrawal/12)}</td>
+                    <td>${formatCurrency(currentGrossIncome)}</td>
+                    <td>${formatCurrency(annualStatePensionInflationAdjusted/12)}</td>
+                    <td>${formatCurrency(annualGrossIncomeInflationAdjusted/12)}</td>                    
+                    <td>${formatCurrency(requiredAnnualWithdrawlInflationAdjusted/12)}</td>
+                    <td>${formatCurrency(otherGrossAnnualIncomeInflationAdjusted)}</td>
                     <td>${formatCurrency(lumpTotal)}</td>
+                    <td>${formatCurrency(requiredAnnualWithdrawlInflationAdjusted)}</td>
+                    <td>${formatCurrency(investmentGain)}</td>                    
                     <td>${formatCurrency(gainLoss)}</td>
                     <td>${gainLossPct.toFixed(2)}%</td>
                     <td>${formatCurrency(balance)}</td>
@@ -257,8 +317,9 @@
                 balances.push(Math.round(balance, 0));
                 agesFirst.push(firstAge);
                 agesSecond.push(secondAge);
-                statePensions.push(Math.round(annualStatePension, 0));
-                annualWithdrawls.push(annualWithdrawal);
+                statePensions.push(Math.round(annualStatePensionInflationAdjusted, 0));
+                annualWithdrawls.push(Math.round(requiredAnnualWithdrawlInflationAdjusted));
+                monthlyWithdrawlsBeforeInflation.push(Math.round(currentGrossIncome));
             }
 
             const traceBalances = {
@@ -319,9 +380,11 @@
         window.onload = function () {
             const currentYear = new Date().getFullYear();
             const currentAge = currentYear - parseInt(document.getElementById('firstBirthYear').value);
-            addWithdrawalRate(currentAge, 4000);
-            addWithdrawalRate(75, 3500);
+            addGrossIncomeRate(currentAge, 6000);
+            addGrossIncomeRate(65, 5000);
+            addGrossIncomeRate(75, 3500);
             addLumpSum(currentAge, -90000);
+            addLumpSum(65, 100000);
         };
     </script>
 </body>
