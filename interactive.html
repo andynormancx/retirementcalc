@@ -119,13 +119,14 @@
     </table>
 
     <script>
-        function addOtherAnnualIncome(age = '', amount = '') {
+        function addOtherAnnualIncome(age = '', amount = '', adjust = true) {
             const container = document.getElementById('otherAnnualIncomeContainer');
             const div = document.createElement('div');
             div.className = 'otherAnnualIncome-entry';
             div.innerHTML = `
                 <label>Age: <input type="number" class="otherAnnualIncomeAge" value="${age}"></label>
                 <label>Amount (£): <input type="number" class="otherAnnualIncomeAmount" value="${amount}"></label>
+                <label>Adjust for inflation: <input type="checkbox" class="otherAnnualIncomeAdjust" value="${adjust}"></label>
                 <button onclick="this.parentElement.remove()">Remove</button>
             `;
             container.appendChild(div);
@@ -137,8 +138,10 @@
             entries.forEach(entry => {
                 const age = parseInt(entry.querySelector('.otherAnnualIncomeAge').value);
                 const amount = parseFloat(entry.querySelector('.otherAnnualIncomeAmount').value);
+                const adjust = entry.querySelector('.otherAnnualIncomeAdjust').checked;
+                
                 if (!isNaN(age) && !isNaN(amount)) {
-                    otherAnnualIncomes.push({ age, amount });
+                    otherAnnualIncomes.push({ age, amount, adjust });
                 }
             });
             return otherAnnualIncomes;
@@ -260,11 +263,15 @@
                 let otherGrossAnnualIncome = 0;
                 otherGrossAnnualIncomeRates.forEach(rate => {
                     if (firstAge >= rate.age) {
-                        otherGrossAnnualIncome += rate.amount;
+                        if (rate.adjust) {
+                            otherGrossAnnualIncome += rate.amount * Math.pow(1 + inflationRate, year - startYear);
+                        } else {
+                            otherGrossAnnualIncome += rate.amount;
+                        }
                     }
                 })
 
-                const otherGrossAnnualIncomeInflationAdjusted = otherGrossAnnualIncome * Math.pow(1 + inflationRate, year - startYear);
+                const otherGrossAnnualIncomeInflationAdjusted = otherGrossAnnualIncome;
                 const annualGrossIncomeInflationAdjusted = currentGrossIncome * 12 * Math.pow(1 + inflationRate, year - startYear);
 
                 const requiredAnnualWithdrawlInflationAdjusted =
