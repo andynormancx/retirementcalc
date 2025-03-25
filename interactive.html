@@ -7,6 +7,18 @@
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.6.4/math.min.js"></script>
     <style>
+        h1 {
+            font-family: Arial, sans-serif;
+            font-size: large;
+        }
+        h2 {
+            font-family: Arial, sans-serif;
+            font-size: medium;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: medium;
+        }
         #projectionTable {
             width: 100%;
             border-collapse: collapse;
@@ -40,54 +52,59 @@
 <body>
     <h1>Interactive Retirement Projection</h1>
 
-    <div>
-        <label for="initialBalance">Initial Balance (£):</label>
-        <input type="number" id="initialBalance" value="950000">
-    </div>
-    <div>
-        <label for="annualReturn">Annual Return (%):</label>
-        <input type="number" id="annualReturn" value="4.5">
-    </div>
-    <div>
-        <label for="inflationRate">Inflation Rate (%):</label>
-        <input type="number" id="inflationRate" value="2.0">
-    </div>
-    <div>
-        <label for="grossIncome">Monthly Gross Income (£):</label>
-        <input type="number" id="grossIncome" value="3000">
-    </div>
-    <div>
-        <label for="firstBirthYear">First Birth Year:</label>
-        <input type="number" id="firstBirthYear" value="1971">
-    </div>
-    <div>
-        <label for="secondBirthYear">Second Birth Year:</label>
-        <input type="number" id="secondBirthYear" value="1960">
-    </div>
-    <div>
-        <label for="firstStatePensionAge">First State Pension Age:</label>
-        <input type="number" id="firstStatePensionAge" value="67">
-    </div>
-    <div>
-        <label for="secondStatePensionAge">Second State Pension Age:</label>
-        <input type="number" id="secondStatePensionAge" value="66">
-    </div>
-    <div>
-        <label for="initialStatePension">Initial state pension (£):</label>
-        <input type="number" id="initialStatePension" value="12000">
-    </div>
+    <details>
+        <summary>General details</summary>
+        <div>
+            <label for="initialBalance">Initial Balance (£):</label>
+            <input type="number" id="initialBalance" value="950000">
+        </div>
+        <div>
+            <label for="annualReturn">Annual Return (%):</label>
+            <input type="number" id="annualReturn" value="4.5" step="0.1">
+        </div>
+        <div>
+            <label for="inflationRate">Inflation Rate (%):</label>
+            <input type="number" id="inflationRate" value="2.0" step="0.1">
+        </div>
+        <div>
+            <label for="grossIncome">Monthly Gross Income (£):</label>
+            <input type="number" id="grossIncome" value="3000">
+        </div>
+        <div>
+            <label for="firstBirthYear">First Birth Year:</label>
+            <input type="number" id="firstBirthYear" value="1971">
+        </div>
+        <div>
+            <label for="secondBirthYear">Second Birth Year:</label>
+            <input type="number" id="secondBirthYear" value="1960">
+        </div>
+        <div>
+            <label for="firstStatePensionAge">First State Pension Age:</label>
+            <input type="number" id="firstStatePensionAge" value="67">
+        </div>
+        <div>
+            <label for="secondStatePensionAge">Second State Pension Age:</label>
+            <input type="number" id="secondStatePensionAge" value="66">
+        </div>
+        <div>
+            <label for="initialStatePension">Initial state pension (£):</label>
+            <input type="number" id="initialStatePension" value="12000">
+        </div>
+    </details>
     
-    <h2>Lump Sums</h2>
-    <div id="lumpSumsContainer"></div>
-    <button onclick="addLumpSum()">Add Lump Sum</button>
+    <details>
+        <h2>Lump Sums</h2>
+        <div id="lumpSumsContainer"></div>
+        <button onclick="addLumpSum()">Add Lump Sum</button>
 
-    <h2>Monthly Gross Income Rates</h2>
-    <div id="grossIncomeRatesContainer"></div>
-    <button onclick="addGrossIncomeRate()">Add Gross Income Rate</button>
+        <h2>Monthly Gross Income Rates</h2>
+        <div id="grossIncomeRatesContainer"></div>
+        <button onclick="addGrossIncomeRate()">Add Gross Income Rate</button>
 
-    <h2>Other Gross Annual Income</h2>
-    <div id="otherAnnualIncomeContainer"></div>
-    <button onclick="addOtherAnnualIncome()">Add Other Gross Annual Income</button>
+        <h2>Other Gross Annual Income</h2>
+        <div id="otherAnnualIncomeContainer"></div>
+        <button onclick="addOtherAnnualIncome()">Add Other Gross Annual Income</button>
+    </details>    
 
     <h2>Projection</h2>
     <button onclick="generateProjection()">Generate Projection</button>
@@ -125,11 +142,15 @@
             div.className = 'otherAnnualIncome-entry';
             div.innerHTML = `
                 <label>Age: <input type="number" class="otherAnnualIncomeAge" value="${age}"></label>
-                <label>Amount (£): <input type="number" class="otherAnnualIncomeAmount" value="${amount}"></label>
+                <label>Amount (£): <input type="number" class="otherAnnualIncomeAmount" value="${amount}" step="100"></label>
                 <label>Adjust for inflation: <input type="checkbox" class="otherAnnualIncomeAdjust" value="${adjust}"></label>
                 <button onclick="this.parentElement.remove()">Remove</button>
             `;
             container.appendChild(div);
+            Array.from(div.querySelectorAll('input')).forEach(input => {
+                input.addEventListener('input', generateProjection);
+            });
+            div.querySelector('button').addEventListener('click', generateProjection);
         }
 
         function getOtherAnnualIncome() {
@@ -153,10 +174,14 @@
             div.className = 'lump-sum-entry';
             div.innerHTML = `
                 <label>Age: <input type="number" class="lumpAge" value="${age}"></label>
-                <label>Amount (£): <input type="number" class="lumpAmount" value="${amount}"></label>
+                <label>Amount (£): <input type="number" class="lumpAmount" value="${amount}" step="100"></label>
                 <button onclick="this.parentElement.remove()">Remove</button>
             `;
             container.appendChild(div);
+            Array.from(div.querySelectorAll('input')).forEach(input => {
+                input.addEventListener('input', generateProjection);
+            });
+            div.querySelector('button').addEventListener('click', generateProjection);
         }
 
         function getLumpSums() {
@@ -178,10 +203,14 @@
             div.className = 'grossincome-rate-entry';
             div.innerHTML = `
                 <label>Age: <input type="number" class="withdrawalAge" value="${age}"></label>
-                <label>Monthly Amount (£): <input type="number" class="grossIncomeAmount" value="${amount}"></label>
+                <label>Monthly Amount (£): <input type="number" class="grossIncomeAmount" value="${amount}" step="100"></label>
                 <button onclick="this.parentElement.remove()">Remove</button>
             `;
             container.appendChild(div);
+            Array.from(div.querySelectorAll('input')).forEach(input => {
+                input.addEventListener('input', generateProjection);
+            });
+            div.querySelector('button').addEventListener('click', generateProjection);
         }
 
         function getGrossIncomeRateRates() {
@@ -393,6 +422,18 @@
             addLumpSum(currentAge, -90000);
             addLumpSum(65, 100000);
             addOtherAnnualIncome(54, 1000, false);
+            const inputIds = [
+                'initialBalance', 'annualReturn', 'inflationRate', 'grossIncome',
+                'firstBirthYear', 'secondBirthYear', 'firstStatePensionAge',
+                'secondStatePensionAge', 'initialStatePension'
+            ];
+            
+            inputIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', generateProjection);
+                }
+            });
         };
     </script>
 </body>
