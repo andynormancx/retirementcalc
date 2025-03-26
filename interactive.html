@@ -1,24 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre.min.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Retirement Projection</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.6.4/math.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre.css">
     <style>
-        h1 {
-            font-family: Arial, sans-serif;
-            font-size: large;
-        }
-        h2 {
-            font-family: Arial, sans-serif;
-            font-size: medium;
-        }
-        body {
-            font-family: Arial, sans-serif;
-            font-size: medium;
-        }
+
         #projectionTable {
             width: 100%;
             border-collapse: collapse;
@@ -47,6 +38,8 @@
         #projectionTable tr:hover {
             background-color: #f1f1f1;
         }
+
+/* Removed .form-grid CSS rules in favor of Spectre utility classes */
     </style>
 </head>
 <body>
@@ -54,52 +47,70 @@
 
     <details>
         <summary>General details</summary>
-        <div>
-            <label for="initialBalance">Initial Balance (£):</label>
-            <input type="number" id="initialBalance" value="950000">
-        </div>
-        <div>
-            <label for="annualReturn">Annual Return (%):</label>
-            <input type="number" id="annualReturn" value="4.5" step="0.1">
-        </div>
-        <div>
-            <label for="inflationRate">Inflation Rate (%):</label>
-            <input type="number" id="inflationRate" value="2.0" step="0.1">
-        </div>
-        <div>
-            <label for="grossIncome">Monthly Gross Income (£):</label>
-            <input type="number" id="grossIncome" value="3000">
-        </div>
-        <div>
-            <label for="firstBirthYear">First Birth Year:</label>
-            <input type="number" id="firstBirthYear" value="1971">
-        </div>
-        <div>
-            <label for="secondBirthYear">Second Birth Year:</label>
-            <input type="number" id="secondBirthYear" value="1960">
-        </div>
-        <div>
-            <label for="firstStatePensionAge">First State Pension Age:</label>
-            <input type="number" id="firstStatePensionAge" value="67">
-        </div>
-        <div>
-            <label for="secondStatePensionAge">Second State Pension Age:</label>
-            <input type="number" id="secondStatePensionAge" value="66">
-        </div>
-        <div>
-            <label for="initialStatePension">Initial state pension (£):</label>
-            <input type="number" id="initialStatePension" value="12000">
+        <div class="container">
+          <div class="columns">
+            <div class="column col-3">
+              <div class="form-group">
+                <label for="initialBalance" class="form-label label-sm">Initial Balance (£):</label>
+                <input class="form-input input-sm" type="number" id="initialBalance" value="950000" step="10000">
+              </div>
+              <div class="form-group">
+                <label for="annualReturn" class="form-label label-sm">Annual Return (%):</label>
+                <input class="form-input input-sm" type="number" id="annualReturn" value="4.5" step="0.1">
+              </div>
+              <div class="form-group">
+                <label for="inflationRate" class="form-label label-sm">Inflation Rate (%):</label>
+                <input class="form-input input-sm" type="number" id="inflationRate" value="2.0" step="0.1">
+              </div>
+              <div class="form-group">
+                <label for="grossIncome" class="form-label label-sm">Monthly Gross Income (£):</label>
+                <input class="form-input input-sm" type="number" id="grossIncome" value="3000">
+              </div>
+            </div>
+            <div class="column col-3">
+                <div class="form-group">
+                  <label for="firstStatePensionAge" class="form-label label-sm">First State Pension Age:</label>
+                  <input class="form-input input-sm" type="number" id="firstStatePensionAge" value="67">
+                </div>
+                <div class="form-group">
+                  <label for="secondStatePensionAge" class="form-label label-sm">Second State Pension Age:</label>
+                  <input class="form-input input-sm" type="number" id="secondStatePensionAge" value="66">
+                </div>
+                <div class="form-group">
+                  <label for="initialStatePension" class="form-label label-sm">Initial state pension (£):</label>
+                  <input class="form-input input-sm" type="number" id="initialStatePension" value="12000">
+                </div>
+              </div>
+            <div class="column col-3">
+                <div class="form-group">
+                    <label for="firstBirthYear" class="form-label label-sm">First Birth Year:</label>
+                    <input class="form-input input-sm" type="number" id="firstBirthYear" value="1971">
+                  </div>
+                <div class="form-group">
+                    <label for="secondBirthYear" class="form-label label-sm">Second Birth Year:</label>
+                    <input class="form-input input-sm" type="number" id="secondBirthYear" value="1960">
+                </div>
+            </div>
+          </div>
         </div>
     </details>
     
     <details>
-        <h2>Lump Sums</h2>
-        <div id="lumpSumsContainer"></div>
-        <button onclick="addLumpSum()">Add Lump Sum</button>
+        <div class="container">
+            <div class="columns">
+                <div class="column col-6">
+                    <h2>Lump Sums</h2>
+                    <div id="lumpSumsContainer"></div>
+                    <button onclick="addLumpSum()">Add Lump Sum</button>
+                </div>
+                <div class="column col-6">
+                    <h2>Monthly Gross Income Rates</h2>
+                    <div id="grossIncomeRatesContainer"></div>
+                    <button onclick="addGrossIncomeRate()">Add Gross Income Rate</button>
+                </div>
+            </div>
+        </div>
 
-        <h2>Monthly Gross Income Rates</h2>
-        <div id="grossIncomeRatesContainer"></div>
-        <button onclick="addGrossIncomeRate()">Add Gross Income Rate</button>
 
         <h2>Other Gross Annual Income</h2>
         <div id="otherAnnualIncomeContainer"></div>
@@ -434,6 +445,8 @@
                     el.addEventListener('input', generateProjection);
                 }
             });
+
+            generateProjection();
         };
     </script>
 </body>
