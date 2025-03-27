@@ -42,8 +42,32 @@
 /* Removed .form-grid CSS rules in favor of Spectre utility classes */
     </style>
 </head>
+<template id="lumpSumTemplate">
+    <div class="lump-sum-entry">
+      <label>Age: <input type="number" class="lumpAge"></label>
+      <label>Amount (£): <input type="number" class="lumpAmount" step="100"></label>
+      <button type="button" class="remove-btn btn btn-sm">Remove</button>
+    </div>
+</template>
+  
+<template id="grossIncomeRateTemplate">
+    <div class="grossincome-rate-entry">
+        <label>Age: <input type="number" class="withdrawalAge"></label>
+        <label>Monthly Amount (£): <input type="number" class="grossIncomeAmount" step="100"></label>
+        <button type="button" class="remove-btn btn btn-sm">Remove</button>
+    </div>
+</template>
+
+<template id="otherAnnualIncomeTemplate">
+    <div class="otherAnnualIncome-entry">
+        <label>Age: <input type="number" class="otherAnnualIncomeAge"></label>
+        <label>Amount (£): <input type="number" class="otherAnnualIncomeAmount" step="100"></label>
+        <label><input type="checkbox" class="otherAnnualIncomeAdjust"> Adjust for inflation</label>
+        <button type="button" class="remove-btn btn btn-sm">Remove</button>
+    </div>
+</template>
 <body>
-    <h1>Interactive Retirement Projection</h1>
+    <h3>Interactive Retirement Projection</h1>
 
     <details>
         <summary>General details</summary>
@@ -99,26 +123,24 @@
         <div class="container">
             <div class="columns">
                 <div class="column col-6">
-                    <h2>Lump Sums</h2>
+                    <h4>Lump Sums</h2>
                     <div id="lumpSumsContainer"></div>
-                    <button onclick="addLumpSum()">Add Lump Sum</button>
+                    <button class="btn" onclick="addLumpSum()">Add Lump Sum</button>
                 </div>
                 <div class="column col-6">
-                    <h2>Monthly Gross Income Rates</h2>
+                    <h4>Monthly Gross Income Rates</h2>
                     <div id="grossIncomeRatesContainer"></div>
-                    <button onclick="addGrossIncomeRate()">Add Gross Income Rate</button>
+                    <button class="btn" onclick="addGrossIncomeRate()">Add Gross Income Rate</button>
                 </div>
             </div>
         </div>
 
 
-        <h2>Other Gross Annual Income</h2>
+        <h4>Other Gross Annual Income</h2>
         <div id="otherAnnualIncomeContainer"></div>
-        <button onclick="addOtherAnnualIncome()">Add Other Gross Annual Income</button>
+        <button class="btn" onclick="addOtherAnnualIncome()">Add Other Gross Annual Income</button>
     </details>    
 
-    <h2>Projection</h2>
-    <button onclick="generateProjection()">Generate Projection</button>
     <div id="zeroBalanceAgeMessage" style="margin-top: 1em; font-weight: bold;"></div>
 
     <div id="chart"></div>
@@ -137,9 +159,12 @@
                 <th>Other Annual Gross (£)</th>
                 <th>Lump Sum (£)</th>
                 <th>Req Annual Withdrawal (£)</th>
+                <th>A</th>
+                <th>E</th>
                 <th>Invest Gain (£)</th>
                 <th>Gain/Loss (£)</th>
                 <th>Gain/Loss (%)</th>
+                <th>Start Balance (£)</th>
                 <th>End Balance (£)</th>
             </tr>
         </thead>
@@ -149,19 +174,27 @@
     <script>
         function addOtherAnnualIncome(age = '', amount = '', adjust = true) {
             const container = document.getElementById('otherAnnualIncomeContainer');
-            const div = document.createElement('div');
-            div.className = 'otherAnnualIncome-entry';
-            div.innerHTML = `
-                <label>Age: <input type="number" class="otherAnnualIncomeAge" value="${age}"></label>
-                <label>Amount (£): <input type="number" class="otherAnnualIncomeAmount" value="${amount}" step="100"></label>
-                <label>Adjust for inflation: <input type="checkbox" class="otherAnnualIncomeAdjust" value="${adjust}"></label>
-                <button onclick="this.parentElement.remove()">Remove</button>
-            `;
-            container.appendChild(div);
-            Array.from(div.querySelectorAll('input')).forEach(input => {
-                input.addEventListener('input', generateProjection);
+            const template = document.getElementById('otherAnnualIncomeTemplate');
+            const clone = template.content.cloneNode(true);
+          
+            const ageInput = clone.querySelector('.otherAnnualIncomeAge');
+            const amountInput = clone.querySelector('.otherAnnualIncomeAmount');
+            const adjustCheckbox = clone.querySelector('.otherAnnualIncomeAdjust');
+            const removeBtn = clone.querySelector('.remove-btn');
+          
+            ageInput.value = age;
+            amountInput.value = amount;
+            adjustCheckbox.checked = adjust;
+          
+            ageInput.addEventListener('input', generateProjection);
+            amountInput.addEventListener('input', generateProjection);
+            adjustCheckbox.addEventListener('change', generateProjection);
+            removeBtn.addEventListener('click', function () {
+              this.parentElement.remove();
+              generateProjection();
             });
-            div.querySelector('button').addEventListener('click', generateProjection);
+          
+            container.appendChild(clone);
         }
 
         function getOtherAnnualIncome() {
@@ -181,18 +214,24 @@
 
         function addLumpSum(age = '', amount = '') {
             const container = document.getElementById('lumpSumsContainer');
-            const div = document.createElement('div');
-            div.className = 'lump-sum-entry';
-            div.innerHTML = `
-                <label>Age: <input type="number" class="lumpAge" value="${age}"></label>
-                <label>Amount (£): <input type="number" class="lumpAmount" value="${amount}" step="100"></label>
-                <button onclick="this.parentElement.remove()">Remove</button>
-            `;
-            container.appendChild(div);
-            Array.from(div.querySelectorAll('input')).forEach(input => {
-                input.addEventListener('input', generateProjection);
+            const template = document.getElementById('lumpSumTemplate');
+            const clone = template.content.cloneNode(true);
+          
+            const ageInput = clone.querySelector('.lumpAge');
+            const amountInput = clone.querySelector('.lumpAmount');
+            const removeBtn = clone.querySelector('.remove-btn');
+          
+            ageInput.value = age;
+            amountInput.value = amount;
+          
+            ageInput.addEventListener('input', generateProjection);
+            amountInput.addEventListener('input', generateProjection);
+            removeBtn.addEventListener('click', function () {
+              this.parentElement.remove();
+              generateProjection();
             });
-            div.querySelector('button').addEventListener('click', generateProjection);
+          
+            container.appendChild(clone);
         }
 
         function getLumpSums() {
@@ -210,18 +249,24 @@
 
         function addGrossIncomeRate(age = '', amount = '') {
             const container = document.getElementById('grossIncomeRatesContainer');
-            const div = document.createElement('div');
-            div.className = 'grossincome-rate-entry';
-            div.innerHTML = `
-                <label>Age: <input type="number" class="withdrawalAge" value="${age}"></label>
-                <label>Monthly Amount (£): <input type="number" class="grossIncomeAmount" value="${amount}" step="100"></label>
-                <button onclick="this.parentElement.remove()">Remove</button>
-            `;
-            container.appendChild(div);
-            Array.from(div.querySelectorAll('input')).forEach(input => {
-                input.addEventListener('input', generateProjection);
+            const template = document.getElementById('grossIncomeRateTemplate');
+            const clone = template.content.cloneNode(true);
+          
+            const ageInput = clone.querySelector('.withdrawalAge');
+            const amountInput = clone.querySelector('.grossIncomeAmount');
+            const removeBtn = clone.querySelector('.remove-btn');
+          
+            ageInput.value = age;
+            amountInput.value = amount;
+          
+            ageInput.addEventListener('input', generateProjection);
+            amountInput.addEventListener('input', generateProjection);
+            removeBtn.addEventListener('click', function () {
+              this.parentElement.remove();
+              generateProjection();
             });
-            div.querySelector('button').addEventListener('click', generateProjection);
+          
+            container.appendChild(clone);
         }
 
         function getGrossIncomeRateRates() {
@@ -278,6 +323,14 @@
 
 
             const otherGrossAnnualIncomeRates = getOtherAnnualIncome();
+
+            years.push(startYear - 1);
+            balances.push(Math.round(initialBalance, 0));
+            agesFirst.push(firstAge - 1);
+            agesSecond.push(secondAge - 1);
+            statePensions.push(0);
+            annualWithdrawls.push(0);
+            monthlyWithdrawlsBeforeInflation.push(0);
 
             for (; year < startYear + maxYears && balance > 0 && firstAge <= 95; year++) {
                 firstAge = year - firstBirthYear;
@@ -353,9 +406,12 @@
                     <td>${formatCurrency(otherGrossAnnualIncomeInflationAdjusted)}</td>
                     <td>${formatCurrency(lumpTotal)}</td>
                     <td>${formatCurrency(requiredAnnualWithdrawlInflationAdjusted)}</td>
+                    <td>${formatCurrency(requiredAnnualWithdrawlInflationAdjusted * 0.2)}</td>
+                    <td>${formatCurrency(requiredAnnualWithdrawlInflationAdjusted * 0.8)}</td>
                     <td>${formatCurrency(investmentGain)}</td>                    
                     <td>${formatCurrency(gainLoss)}</td>
                     <td>${gainLossPct.toFixed(2)}%</td>
+                    <td>${formatCurrency(prevBalance)}</td>
                     <td>${formatCurrency(balance)}</td>
                 `;
                 tableBody.appendChild(row);
@@ -400,8 +456,7 @@
             const data = [traceBalances, traceStatePension, traceAnnualWithdrawls];
 
             const layout = {
-                title: 'Retirement Balance Over Time',
-                xaxis: { title: 'Age', range: [startYear - firstBirthYear, 95] },
+                xaxis: { title: 'Age', range: [startYear - firstBirthYear - 1, 95] },
                 yaxis: { title: 'Balance (£)', tickformat: ',' },
                 height: 600
             };
@@ -410,16 +465,15 @@
             const messageDiv = document.getElementById('zeroBalanceAgeMessage');
             if (zeroBalanceIndex !== -1) {
                 const zeroAge = agesFirst[zeroBalanceIndex];
-                if (zeroAge < 95) {
-                    messageDiv.innerHTML = `⚠️ Balance reaches zero at age ${zeroAge}.`;
-                    messageDiv.style.color = 'red';
+                if (zeroAge < 95 && zeroAge > 85) {
+                    messageDiv.innerHTML = `<span class="label label-warning">Balance reaches zero at age ${zeroAge}.</label>`;
+                } else if (zeroAge <= 85) {
+                    messageDiv.innerHTML = `<span class="label label-error">Balance reaches zero at age ${zeroAge}.</label>`;
                 } else {
-                    messageDiv.innerHTML = `✅ Balance does not reach zero before age 95 (final age: ${zeroAge}).`;
-                    messageDiv.style.color = 'green';
+                    messageDiv.innerHTML = `<span class="label label-success">Balance does not reach zero before age 95 (final age: ${zeroAge}).</label>`;
                 }
             } else {
-                messageDiv.innerHTML = '✅ Balance never reaches zero.';
-                messageDiv.style.color = 'green';
+                messageDiv.innerHTML = '<span class="label label-success">Balance never reaches zero.</label>';
             }
             Plotly.newPlot('chart', data, layout);
         }
