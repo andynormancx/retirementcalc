@@ -89,9 +89,11 @@ export function generateProjection(model) {
         balance -= requiredAnnualWithdrawlInflationAdjusted
         //balance += annualStatePensionInflationAdjusted;
 
+        let lumpTotal = 0;
         lumpSums.forEach(({ age, amount }) => {
             if (firstAge === age) {
                 balance += amount;
+                lumpTotal += amount;
             }
         });
 
@@ -100,13 +102,6 @@ export function generateProjection(model) {
         const prevBalance = balances.length > 0 ? balances[balances.length - 1] : initialBalance;
         const gainLoss = balance - prevBalance;
         const gainLossPct = prevBalance > 0 ? (gainLoss / prevBalance) * 100 : 0;
-
-        let lumpTotal = 0;
-        lumpSums.forEach(({ age, amount }) => {
-            if (firstAge === age) {
-                lumpTotal += amount;
-            }
-        });
 
         const row = document.createElement('tr');
         row.innerHTML = `

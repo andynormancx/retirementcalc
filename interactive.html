@@ -45,24 +45,24 @@
 <template id="lumpSumTemplate">
     <div class="lump-sum-entry">
       <label>Age: <input data-bind="otherAnnualIncomes.age" type="number" class="lumpAge"></label>
-      <label>Amount (£): <input data-bind="otherAnnualIncomes.amount" type="number" class="lumpAmount" step="100"></label>
+      <label>Amount (£): <input data-bind="otherAnnualIncomes.amount" type="number" class="lumpAmount" step="1000"></label>
       <button type="button" class="remove-btn btn btn-sm">Remove</button>
     </div>
 </template>
   
 <template id="grossIncomeRateTemplate">
     <div class="grossincome-rate-entry">
-        <label>Age: <input type="number" class="withdrawalAge"></label>
-        <label>Monthly Amount (£): <input type="number" class="grossIncomeAmount" step="100"></label>
+        <label>Age: <input data-bind="grossExpenditureRates.age" type="number" class="withdrawalAge"></label>
+        <label>Monthly Amount (£): <input data-bind="grossExpenditureRates.amount" type="number" class="grossIncomeAmount" step="100"></label>
         <button type="button" class="remove-btn btn btn-sm">Remove</button>
     </div>
 </template>
 
 <template id="otherAnnualIncomeTemplate">
     <div class="otherAnnualIncome-entry">
-        <label>Age: <input type="number" class="otherAnnualIncomeAge"></label>
-        <label>Amount (£): <input type="number" class="otherAnnualIncomeAmount" step="100"></label>
-        <label><input type="checkbox" class="otherAnnualIncomeAdjust"> Adjust for inflation</label>
+        <label>Age: <input data-bind="otherAnnualIncomes.age" type="number" class="otherAnnualIncomeAge"></label>
+        <label>Amount (£): <input data-bind="otherAnnualIncomes.amount" type="number" class="otherAnnualIncomeAmount" step="100"></label>
+        <label><input data-bind="otherAnnualIncomes.adjustForInflation"  type="checkbox" class="otherAnnualIncomeAdjust"> Adjust for inflation</label>
         <button type="button" class="remove-btn btn btn-sm">Remove</button>
     </div>
 </template>
@@ -125,12 +125,12 @@
                 <div class="column col-6">
                     <h4>Lump Sums</h2>
                     <div id="lumpSumsContainer"></div>
-                    <button class="btn" onclick="addLumpSum()">Add Lump Sum</button>
+                    <button id="lumpSumsAddBtn" class="btn">Add Lump Sum</button>
                 </div>
                 <div class="column col-6">
                     <h4>Monthly Gross Income Rates</h2>
                     <div id="grossIncomeRatesContainer"></div>
-                    <button class="btn" onclick="addGrossIncomeRate()">Add Gross Income Rate</button>
+                    <button id="grossIncomeRatesAddBtn" class="btn">Add Gross Income Rate</button>
                 </div>
             </div>
         </div>
@@ -138,7 +138,7 @@
 
         <h4>Other Gross Annual Income</h2>
         <div id="otherAnnualIncomeContainer"></div>
-        <button class="btn" onclick="addOtherAnnualIncome()">Add Other Gross Annual Income</button>
+        <button id="otherAnnualIncomeAddBtn" class="btn">Add Other Gross Annual Income</button>
     </details>    
 
     <div id="zeroBalanceAgeMessage" style="margin-top: 1em; font-weight: bold;"></div>

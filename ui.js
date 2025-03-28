@@ -9,6 +9,8 @@ export function setupUI(defaultState) {
     });
 
     setupOtherAnnualIncomes()
+    setupLumpSums()
+    setupGrossIncomeRates()
 
     bindInputs()
     updateProjection()
@@ -67,7 +69,12 @@ function bindChildElements(parentElement, modelToBind, ignoreNestedBindings) {
 function setupOtherAnnualIncomes() {
     model.otherAnnualIncomes.forEach((_, index) => {
         addOtherAnnualIncome(index)
-    })    
+    })
+
+    const btn = document.getElementById('otherAnnualIncomeAddBtn');
+    btn.addEventListener('click', function () {
+        addNewOtherAnnualIncome()
+    })
 }
 
 function addOtherAnnualIncome(index) {
@@ -92,72 +99,92 @@ function addOtherAnnualIncome(index) {
     container.appendChild(clone);
 }
 
-function addLumpSum(age = '', amount = '') {
+function addNewOtherAnnualIncome(index) {
+    model.otherAnnualIncomes.push({
+        age: model.firstStatePensionAge,
+        amount: 0
+    })
+    addOtherAnnualIncome(model.otherAnnualIncomes.length - 1)
+}
+
+function setupLumpSums() {
+    model.lumpSums.forEach((_, index) => {
+        addLumpSum(index)
+    })
+
+    const btn = document.getElementById('lumpSumsAddBtn');
+    btn.addEventListener('click', function () {
+        addNewLumpSum()
+    })
+}
+
+function addLumpSum(index) {
     const container = document.getElementById('lumpSumsContainer');
     const template = document.getElementById('lumpSumTemplate');
     const clone = template.content.cloneNode(true);
   
-    const ageInput = clone.querySelector('.lumpAge');
-    const amountInput = clone.querySelector('.lumpAmount');
     const removeBtn = clone.querySelector('.remove-btn');
   
-    ageInput.value = age;
-    amountInput.value = amount;
-  
-    ageInput.addEventListener('input', generateProjection);
-    amountInput.addEventListener('input', generateProjection);
+    const incomeElement = clone.firstElementChild;
+
+    const reactiveIncome = model.lumpSums[index];
+    bindChildElements(incomeElement, reactiveIncome, false);
+
     removeBtn.addEventListener('click', function () {
-      this.parentElement.remove();
-      generateProjection();
+        model.lumpSums.splice(index, 1);
+        // Remove from DOM
+        incomeElement.remove();
+        updateProjection();
     });
   
     container.appendChild(clone);
 }
 
-function getLumpSums() {
-    const entries = document.querySelectorAll('.lump-sum-entry');
-    const lumpSums = [];
-    entries.forEach(entry => {
-        const age = parseInt(entry.querySelector('.lumpAge').value);
-        const amount = parseFloat(entry.querySelector('.lumpAmount').value);
-        if (!isNaN(age) && !isNaN(amount)) {
-            lumpSums.push({ age, amount });
-        }
-    });
-    return lumpSums;
+function addNewLumpSum() {
+    model.lumpSums.push({
+        age: model.firstStatePensionAge,
+        amount: 0
+    })
+    addLumpSum(model.lumpSums.length - 1)
 }
 
-function addGrossIncomeRate(age = '', amount = '') {
+function setupGrossIncomeRates() {
+    model.grossExpenditureRates.forEach((_, index) => {
+        addGrossIncomeRate(index)
+    })
+
+    const btn = document.getElementById('grossIncomeRatesAddBtn');
+    btn.addEventListener('click', function () {
+        addNewGrossIncomeRate()
+    })
+}
+
+function addGrossIncomeRate(index) {
     const container = document.getElementById('grossIncomeRatesContainer');
     const template = document.getElementById('grossIncomeRateTemplate');
     const clone = template.content.cloneNode(true);
   
-    const ageInput = clone.querySelector('.withdrawalAge');
-    const amountInput = clone.querySelector('.grossIncomeAmount');
     const removeBtn = clone.querySelector('.remove-btn');
   
-    ageInput.value = age;
-    amountInput.value = amount;
-  
-    ageInput.addEventListener('input', generateProjection);
-    amountInput.addEventListener('input', generateProjection);
+    const incomeElement = clone.firstElementChild;
+
+    const reactiveIncome = model.grossExpenditureRates[index];
+    bindChildElements(incomeElement, reactiveIncome, false);
+
     removeBtn.addEventListener('click', function () {
-      this.parentElement.remove();
-      generateProjection();
+        model.grossExpenditureRates.splice(index, 1);
+        // Remove from DOM
+        incomeElement.remove();
+        updateProjection();
     });
   
     container.appendChild(clone);
 }
 
-function getGrossIncomeRateRates() {
-    const entries = document.querySelectorAll('.grossincome-rate-entry');
-    const rates = [];
-    entries.forEach(entry => {
-        const age = parseInt(entry.querySelector('.withdrawalAge').value);
-        const amount = parseFloat(entry.querySelector('.grossIncomeAmount').value);
-        if (!isNaN(age) && !isNaN(amount)) {
-            rates.push({ age, amount });
-        }
-    });
-    return rates;
+function addNewGrossIncomeRate() {
+    model.grossExpenditureRates.push({
+        age: model.firstStatePensionAge,
+        amount: 0
+    })
+    addGrossIncomeRate(model.grossExpenditureRates.length - 1)
 }

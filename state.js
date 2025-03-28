@@ -32,7 +32,7 @@ export function getDefaultState(currentYear) {
                 amount: -90000
             },
             {
-                age: currentFirstAge + 65,
+                age: 65,
                 amount: 100000
             },
         ],
@@ -41,7 +41,7 @@ export function getDefaultState(currentYear) {
                 age: currentFirstAge,
                 amount: 1000,
                 adjustForInflation: false
-            }
+            },
         ]
     }
 
