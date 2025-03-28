@@ -1,31 +1,64 @@
 import { createReactiveModel } from './model.js';
 import { generateProjection } from './model.js';
 
+let model = null
+
 export function setupUI(defaultState) {
-    const model = createReactiveModel(defaultState, () => {
-        generateProjection(model);
+    model = createReactiveModel(defaultState, () => {
+        updateProjection()
     });
 
-    bindInputs(model)
+    setupOtherAnnualIncomes()
+
+    bindInputs()
+    updateProjection()
 }
 
-function bindInputs(model) {
-    document.querySelectorAll('[data-bind]').forEach(input => {
-        const key = input.dataset.bind;
+function updateProjection() {
+    const modelCopy = structuredClone(model.getRawData())
+
+    generateProjection(modelCopy)
+}
+
+function bindInputs() {
+    bindChildElements(document, model, true)
+}
+
+function bindChildElements(parentElement, modelToBind, ignoreNestedBindings) {
+    parentElement.querySelectorAll('[data-bind]').forEach(input => {
+        const keyParts = input.dataset.bind.split('.')
+        let key = null
+        
+        // for the bindings in the lists we use list.key
+        // for the bingings in the other controls is it just the key
+        if (keyParts.length == 2) {
+            if (ignoreNestedBindings) {
+                return
+            }
+            key = keyParts[1]
+        } else {
+            key = keyParts[0]
+        }
 
         // Initialize input from model if it has a value
-        if (model[key] !== undefined) {
-            input.value = model[key];
+        if (modelToBind[key] !== undefined) {
+            input.value = modelToBind[key];
         }
 
         // Update model on user input
         input.addEventListener('input', () => {
-            model[key] = parseFloat(input.value) || 0;
+            modelToBind[key] = parseFloat(input.value) || 0;
         });
     });
 }
 
-function addOtherAnnualIncome(age = '', amount = '', adjust = true) {
+function setupOtherAnnualIncomes() {
+    model.otherAnnualIncomes.forEach((income, index) => {
+        addOtherAnnualIncome(income)
+    })    
+}
+
+function addOtherAnnualIncome(income) {
     const container = document.getElementById('otherAnnualIncomeContainer');
     const template = document.getElementById('otherAnnualIncomeTemplate');
     const clone = template.content.cloneNode(true);
@@ -35,16 +68,37 @@ function addOtherAnnualIncome(age = '', amount = '', adjust = true) {
     const adjustCheckbox = clone.querySelector('.otherAnnualIncomeAdjust');
     const removeBtn = clone.querySelector('.remove-btn');
   
-    ageInput.value = age;
-    amountInput.value = amount;
-    adjustCheckbox.checked = adjust;
+    const incomeElement = clone.firstElementChild;
+
+    ageInput.value = income.age;
+    amountInput.value = income.amount;
+    adjustCheckbox.checked = income.adjustForInflation;
   
-    ageInput.addEventListener('input', generateProjection);
-    amountInput.addEventListener('input', generateProjection);
-    adjustCheckbox.addEventListener('change', generateProjection);
+    ageInput.addEventListener('input', () => {
+        income.age = parseFloat(ageInput.value) || 0
+        updateProjection()
+    });
+    
+    amountInput.addEventListener('input', () => {
+        income.amount = parseFloat(amountInput.value) || 0
+        updateProjection()
+    });
+
+    adjustCheckbox.addEventListener('change', () => {
+        income.adjustCheckbox = adjustCheckbox.checked
+        updateProjection()
+    });
+
     removeBtn.addEventListener('click', function () {
-      this.parentElement.remove();
-      generateProjection();
+        // Remove from model
+        const index = model.otherAnnualIncomes.indexOf(income);
+        if (index !== -1) {
+            model.otherAnnualIncomes.splice(index, 1);
+        }
+
+        // Remove from DOM
+        incomeElement.remove();
+        updateProjection();
     });
   
     container.appendChild(clone);

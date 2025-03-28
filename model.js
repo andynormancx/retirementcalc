@@ -72,7 +72,7 @@ export function generateProjection(model) {
         let otherGrossAnnualIncome = 0;
         otherGrossAnnualIncomeRates.forEach(rate => {
             if (firstAge >= rate.age) {
-                if (rate.adjust) {
+                if (rate.adjustForInflation) {
                     otherGrossAnnualIncome += rate.amount * Math.pow(1 + inflationRate, year - startYear);
                 } else {
                     otherGrossAnnualIncome += rate.amount;
@@ -195,7 +195,7 @@ export function generateProjection(model) {
 }
 
 export function createReactiveModel(data, onChange) {
-    return new Proxy(data, {
+    const proxy = new Proxy(data, {
       set(target, prop, value) {
         const oldVal = target[prop];
 
@@ -207,4 +207,13 @@ export function createReactiveModel(data, onChange) {
         return true;
       }
     });
+
+    // we need to be able to get the raw data later to clone it so
+    // we can pass a copy to generateProjection
+    Object.defineProperty(proxy, 'getRawData', {
+        value: () => data,
+        enumerable: false
+    });
+
+    return proxy
 }

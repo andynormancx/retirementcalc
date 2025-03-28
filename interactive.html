@@ -44,8 +44,8 @@
 </head>
 <template id="lumpSumTemplate">
     <div class="lump-sum-entry">
-      <label>Age: <input type="number" class="lumpAge"></label>
-      <label>Amount (£): <input type="number" class="lumpAmount" step="100"></label>
+      <label>Age: <input data-bind="otherAnnualIncomes.age" type="number" class="lumpAge"></label>
+      <label>Amount (£): <input data-bind="otherAnnualIncomes.amount" type="number" class="lumpAmount" step="100"></label>
       <button type="button" class="remove-btn btn btn-sm">Remove</button>
     </div>
 </template>
