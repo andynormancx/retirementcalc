@@ -76,43 +76,43 @@
             <div class="column col-3">
               <div class="form-group">
                 <label for="initialBalance" class="form-label label-sm">Initial Balance (£):</label>
-                <input class="form-input input-sm" type="number" id="initialBalance" value="950000" step="10000">
+                <input data-bind="initialBalance" class="form-input input-sm" type="number" id="initialBalance" value="950000" step="10000">
               </div>
               <div class="form-group">
                 <label for="annualReturn" class="form-label label-sm">Annual Return (%):</label>
-                <input class="form-input input-sm" type="number" id="annualReturn" value="4.5" step="0.1">
+                <input data-bind="annualReturn" class="form-input input-sm" type="number" id="annualReturn" value="4.5" step="0.1">
               </div>
               <div class="form-group">
                 <label for="inflationRate" class="form-label label-sm">Inflation Rate (%):</label>
-                <input class="form-input input-sm" type="number" id="inflationRate" value="2.0" step="0.1">
+                <input data-bind="inflationRate" class="form-input input-sm" type="number" id="inflationRate" value="2.0" step="0.1">
               </div>
               <div class="form-group">
                 <label for="grossIncome" class="form-label label-sm">Monthly Gross Income (£):</label>
-                <input class="form-input input-sm" type="number" id="grossIncome" value="3000">
+                <input data-bind="grossIncome" class="form-input input-sm" type="number" id="grossIncome" value="3000">
               </div>
             </div>
             <div class="column col-3">
                 <div class="form-group">
                   <label for="firstStatePensionAge" class="form-label label-sm">First State Pension Age:</label>
-                  <input class="form-input input-sm" type="number" id="firstStatePensionAge" value="67">
+                  <input data-bind="firstStatePensionAge" class="form-input input-sm" type="number" id="firstStatePensionAge" value="67">
                 </div>
                 <div class="form-group">
                   <label for="secondStatePensionAge" class="form-label label-sm">Second State Pension Age:</label>
-                  <input class="form-input input-sm" type="number" id="secondStatePensionAge" value="66">
+                  <input data-bind="secondStatePensionAge" class="form-input input-sm" type="number" id="secondStatePensionAge" value="66">
                 </div>
                 <div class="form-group">
                   <label for="initialStatePension" class="form-label label-sm">Initial state pension (£):</label>
-                  <input class="form-input input-sm" type="number" id="initialStatePension" value="12000">
+                  <input data-bind="initialStatePension" class="form-input input-sm" type="number" id="initialStatePension" value="12000">
                 </div>
               </div>
             <div class="column col-3">
                 <div class="form-group">
                     <label for="firstBirthYear" class="form-label label-sm">First Birth Year:</label>
-                    <input class="form-input input-sm" type="number" id="firstBirthYear" value="1971">
+                    <input data-bind="firstBirthYear" class="form-input input-sm" type="number" id="firstBirthYear" value="1971">
                   </div>
                 <div class="form-group">
                     <label for="secondBirthYear" class="form-label label-sm">Second Birth Year:</label>
-                    <input class="form-input input-sm" type="number" id="secondBirthYear" value="1960">
+                    <input data-bind="secondBirthYear" class="form-input input-sm" type="number" id="secondBirthYear" value="1960">
                 </div>
             </div>
           </div>
@@ -170,338 +170,6 @@
         </thead>
         <tbody></tbody>
     </table>
-
-    <script>
-        function addOtherAnnualIncome(age = '', amount = '', adjust = true) {
-            const container = document.getElementById('otherAnnualIncomeContainer');
-            const template = document.getElementById('otherAnnualIncomeTemplate');
-            const clone = template.content.cloneNode(true);
-          
-            const ageInput = clone.querySelector('.otherAnnualIncomeAge');
-            const amountInput = clone.querySelector('.otherAnnualIncomeAmount');
-            const adjustCheckbox = clone.querySelector('.otherAnnualIncomeAdjust');
-            const removeBtn = clone.querySelector('.remove-btn');
-          
-            ageInput.value = age;
-            amountInput.value = amount;
-            adjustCheckbox.checked = adjust;
-          
-            ageInput.addEventListener('input', generateProjection);
-            amountInput.addEventListener('input', generateProjection);
-            adjustCheckbox.addEventListener('change', generateProjection);
-            removeBtn.addEventListener('click', function () {
-              this.parentElement.remove();
-              generateProjection();
-            });
-          
-            container.appendChild(clone);
-        }
-
-        function getOtherAnnualIncome() {
-            const entries = document.querySelectorAll('.otherAnnualIncome-entry');
-            const otherAnnualIncomes = [];
-            entries.forEach(entry => {
-                const age = parseInt(entry.querySelector('.otherAnnualIncomeAge').value);
-                const amount = parseFloat(entry.querySelector('.otherAnnualIncomeAmount').value);
-                const adjust = entry.querySelector('.otherAnnualIncomeAdjust').checked;
-                
-                if (!isNaN(age) && !isNaN(amount)) {
-                    otherAnnualIncomes.push({ age, amount, adjust });
-                }
-            });
-            return otherAnnualIncomes;
-        }
-
-        function addLumpSum(age = '', amount = '') {
-            const container = document.getElementById('lumpSumsContainer');
-            const template = document.getElementById('lumpSumTemplate');
-            const clone = template.content.cloneNode(true);
-          
-            const ageInput = clone.querySelector('.lumpAge');
-            const amountInput = clone.querySelector('.lumpAmount');
-            const removeBtn = clone.querySelector('.remove-btn');
-          
-            ageInput.value = age;
-            amountInput.value = amount;
-          
-            ageInput.addEventListener('input', generateProjection);
-            amountInput.addEventListener('input', generateProjection);
-            removeBtn.addEventListener('click', function () {
-              this.parentElement.remove();
-              generateProjection();
-            });
-          
-            container.appendChild(clone);
-        }
-
-        function getLumpSums() {
-            const entries = document.querySelectorAll('.lump-sum-entry');
-            const lumpSums = [];
-            entries.forEach(entry => {
-                const age = parseInt(entry.querySelector('.lumpAge').value);
-                const amount = parseFloat(entry.querySelector('.lumpAmount').value);
-                if (!isNaN(age) && !isNaN(amount)) {
-                    lumpSums.push({ age, amount });
-                }
-            });
-            return lumpSums;
-        }
-
-        function addGrossIncomeRate(age = '', amount = '') {
-            const container = document.getElementById('grossIncomeRatesContainer');
-            const template = document.getElementById('grossIncomeRateTemplate');
-            const clone = template.content.cloneNode(true);
-          
-            const ageInput = clone.querySelector('.withdrawalAge');
-            const amountInput = clone.querySelector('.grossIncomeAmount');
-            const removeBtn = clone.querySelector('.remove-btn');
-          
-            ageInput.value = age;
-            amountInput.value = amount;
-          
-            ageInput.addEventListener('input', generateProjection);
-            amountInput.addEventListener('input', generateProjection);
-            removeBtn.addEventListener('click', function () {
-              this.parentElement.remove();
-              generateProjection();
-            });
-          
-            container.appendChild(clone);
-        }
-
-        function getGrossIncomeRateRates() {
-            const entries = document.querySelectorAll('.grossincome-rate-entry');
-            const rates = [];
-            entries.forEach(entry => {
-                const age = parseInt(entry.querySelector('.withdrawalAge').value);
-                const amount = parseFloat(entry.querySelector('.grossIncomeAmount').value);
-                if (!isNaN(age) && !isNaN(amount)) {
-                    rates.push({ age, amount });
-                }
-            });
-            return rates;
-        }
-
-        function generateProjection() {
-            const initialBalance = parseFloat(document.getElementById('initialBalance').value);
-            const annualReturn = parseFloat(document.getElementById('annualReturn').value) / 100;
-            const inflationRate = parseFloat(document.getElementById('inflationRate').value) / 100;
-            const grossIncome = parseFloat(document.getElementById('grossIncome').value);
-            const firstBirthYear = parseInt(document.getElementById('firstBirthYear').value);
-            const secondBirthYear = parseInt(document.getElementById('secondBirthYear').value);
-            const initialStatePension = parseFloat(document.getElementById('initialStatePension').value);
-            const firstStatePensionAge = parseInt(document.getElementById('firstStatePensionAge').value);
-            const secondStatePensionAge = parseInt(document.getElementById('secondStatePensionAge').value);
-
-            const formatCurrency = value => Math.round(value).toLocaleString('en-UK');
-
-            let balance = initialBalance;
-            const years = [];
-            const balances = [];
-            const statePensions = [];
-            const agesFirst = [];
-            const agesSecond = [];
-            const annualWithdrawls = [];
-            const monthlyWithdrawlsBeforeInflation = [];
-
-            const startYear = new Date().getFullYear();
-            const maxYears = 100;
-
-            const tableBody = document.getElementById('projectionTable').querySelector('tbody');
-            tableBody.innerHTML = '';
-
-            let year = startYear;
-            let firstAge = year - firstBirthYear;
-            let secondAge = year - secondBirthYear;
-
-            let currentGrossIncome = grossIncome; // Initial value
-
-            const lumpSums = getLumpSums();
-
-            const grossIncomeRates = getGrossIncomeRateRates();
-            grossIncomeRates.sort((a, b) => a.age - b.age); // Ensure chronological order
-
-
-            const otherGrossAnnualIncomeRates = getOtherAnnualIncome();
-
-            years.push(startYear - 1);
-            balances.push(Math.round(initialBalance, 0));
-            agesFirst.push(firstAge - 1);
-            agesSecond.push(secondAge - 1);
-            statePensions.push(0);
-            annualWithdrawls.push(0);
-            monthlyWithdrawlsBeforeInflation.push(0);
-
-            for (; year < startYear + maxYears && balance > 0 && firstAge <= 95; year++) {
-                firstAge = year - firstBirthYear;
-                secondAge = year - secondBirthYear;              
-                let annualStatePensionInflationAdjusted = 0;
-                const statePensionInflationAdjusted = initialStatePension * Math.pow(1 + inflationRate, year - startYear);
-
-                if (firstAge >= firstStatePensionAge) {
-                  annualStatePensionInflationAdjusted += statePensionInflationAdjusted;
-                }
-                if (secondAge >= secondStatePensionAge) {
-                  annualStatePensionInflationAdjusted += statePensionInflationAdjusted;
-                }
-                
-                console.log(firstAge);
-              
-                grossIncomeRates.forEach(rate => {
-                    if (firstAge >= rate.age) {
-                        currentGrossIncome = rate.amount; // Update to latest applicable rate
-                    }
-                });
-
-                let otherGrossAnnualIncome = 0;
-                otherGrossAnnualIncomeRates.forEach(rate => {
-                    if (firstAge >= rate.age) {
-                        if (rate.adjust) {
-                            otherGrossAnnualIncome += rate.amount * Math.pow(1 + inflationRate, year - startYear);
-                        } else {
-                            otherGrossAnnualIncome += rate.amount;
-                        }
-                    }
-                })
-
-                const otherGrossAnnualIncomeInflationAdjusted = otherGrossAnnualIncome;
-                const annualGrossIncomeInflationAdjusted = currentGrossIncome * 12 * Math.pow(1 + inflationRate, year - startYear);
-
-                const requiredAnnualWithdrawlInflationAdjusted =
-                    Math.max(annualGrossIncomeInflationAdjusted - annualStatePensionInflationAdjusted - otherGrossAnnualIncomeInflationAdjusted, 0);
-                const investmentGain = balance * annualReturn;
-
-                balance = balance + investmentGain;
-                balance -= requiredAnnualWithdrawlInflationAdjusted
-                //balance += annualStatePensionInflationAdjusted;
-
-                lumpSums.forEach(({ age, amount }) => {
-                    if (firstAge === age) {
-                        balance += amount;
-                    }
-                });
-
-                balance = Math.max(balance, 0);
-
-                const prevBalance = balances.length > 0 ? balances[balances.length - 1] : initialBalance;
-                const gainLoss = balance - prevBalance;
-                const gainLossPct = prevBalance > 0 ? (gainLoss / prevBalance) * 100 : 0;
-
-                let lumpTotal = 0;
-                lumpSums.forEach(({ age, amount }) => {
-                    if (firstAge === age) {
-                        lumpTotal += amount;
-                    }
-                });
-
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${year}</td>
-                    <td>${firstAge}</td>
-                    <td>${secondAge}</td>
-                    <td>${formatCurrency(currentGrossIncome)}</td>
-                    <td>${formatCurrency(annualStatePensionInflationAdjusted/12)}</td>
-                    <td>${formatCurrency(annualGrossIncomeInflationAdjusted/12)}</td>                    
-                    <td>${formatCurrency(requiredAnnualWithdrawlInflationAdjusted/12)}</td>
-                    <td>${formatCurrency(otherGrossAnnualIncomeInflationAdjusted)}</td>
-                    <td>${formatCurrency(lumpTotal)}</td>
-                    <td>${formatCurrency(requiredAnnualWithdrawlInflationAdjusted)}</td>
-                    <td>${formatCurrency(requiredAnnualWithdrawlInflationAdjusted * 0.2)}</td>
-                    <td>${formatCurrency(requiredAnnualWithdrawlInflationAdjusted * 0.8)}</td>
-                    <td>${formatCurrency(investmentGain)}</td>                    
-                    <td>${formatCurrency(gainLoss)}</td>
-                    <td>${gainLossPct.toFixed(2)}%</td>
-                    <td>${formatCurrency(prevBalance)}</td>
-                    <td>${formatCurrency(balance)}</td>
-                `;
-                tableBody.appendChild(row);
-
-                years.push(year);
-                balances.push(Math.round(balance, 0));
-                agesFirst.push(firstAge);
-                agesSecond.push(secondAge);
-                statePensions.push(Math.round(annualStatePensionInflationAdjusted, 0));
-                annualWithdrawls.push(Math.round(requiredAnnualWithdrawlInflationAdjusted));
-                monthlyWithdrawlsBeforeInflation.push(Math.round(currentGrossIncome));
-            }
-
-            const traceBalances = {
-                x: agesFirst,
-                y: balances,
-                type: 'scatter',
-                mode: 'lines+markers',
-                name: 'Balance (£)'
-            };
-        
-            // Define the second trace
-            const traceStatePension = {
-                x: agesFirst,
-                y: statePensions,
-                type: 'scatter',
-                mode: 'lines+markers',
-                name: 'State Pension (£)',
-                line: { color: 'green' }
-            };
-
-            const traceAnnualWithdrawls = {
-                x: agesFirst,
-                y: annualWithdrawls,
-                type: 'scatter',
-                mode: 'lines+markers',
-                name: 'Annual (£)',
-                line: { color: 'red' }
-            };
-
-
-            const data = [traceBalances, traceStatePension, traceAnnualWithdrawls];
-
-            const layout = {
-                xaxis: { title: 'Age', range: [startYear - firstBirthYear - 1, 95] },
-                yaxis: { title: 'Balance (£)', tickformat: ',' },
-                height: 600
-            };
-
-            const zeroBalanceIndex = balances.findIndex(b => b === 0);
-            const messageDiv = document.getElementById('zeroBalanceAgeMessage');
-            if (zeroBalanceIndex !== -1) {
-                const zeroAge = agesFirst[zeroBalanceIndex];
-                if (zeroAge < 95 && zeroAge > 85) {
-                    messageDiv.innerHTML = `<span class="label label-warning">Balance reaches zero at age ${zeroAge}.</label>`;
-                } else if (zeroAge <= 85) {
-                    messageDiv.innerHTML = `<span class="label label-error">Balance reaches zero at age ${zeroAge}.</label>`;
-                } else {
-                    messageDiv.innerHTML = `<span class="label label-success">Balance does not reach zero before age 95 (final age: ${zeroAge}).</label>`;
-                }
-            } else {
-                messageDiv.innerHTML = '<span class="label label-success">Balance never reaches zero.</label>';
-            }
-            Plotly.newPlot('chart', data, layout);
-        }
-
-        window.onload = function () {
-            const currentYear = new Date().getFullYear();
-            const currentAge = currentYear - parseInt(document.getElementById('firstBirthYear').value);
-            addGrossIncomeRate(currentAge, 6000);
-            addGrossIncomeRate(65, 5000);
-            addGrossIncomeRate(75, 3500);
-            addLumpSum(currentAge, -90000);
-            addLumpSum(65, 100000);
-            addOtherAnnualIncome(54, 1000, false);
-            const inputIds = [
-                'initialBalance', 'annualReturn', 'inflationRate', 'grossIncome',
-                'firstBirthYear', 'secondBirthYear', 'firstStatePensionAge',
-                'secondStatePensionAge', 'initialStatePension'
-            ];
-            
-            inputIds.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.addEventListener('input', generateProjection);
-                }
-            });
-
-            generateProjection();
-        };
-    </script>
+    <script src="projection.js" type="module"></script>
 </body>
 </html>
