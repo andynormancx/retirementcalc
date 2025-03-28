@@ -42,81 +42,54 @@ function bindChildElements(parentElement, modelToBind, ignoreNestedBindings) {
 
         // Initialize input from model if it has a value
         if (modelToBind[key] !== undefined) {
-            input.value = modelToBind[key];
+            if (input.type === 'checkbox') {
+                input.checked = modelToBind[key];
+            } else {
+                input.value = modelToBind[key];
+            }
+        } else {
+            return
         }
 
         // Update model on user input
         input.addEventListener('input', () => {
-            modelToBind[key] = parseFloat(input.value) || 0;
+            console.log(`Setting ${key} to`, input.type === 'checkbox' ? input.checked : parseFloat(input.value) || 0);
+            
+            if (input.type === 'checkbox') {
+                modelToBind[key] = input.checked;
+            } else {
+                modelToBind[key] = parseFloat(input.value) || 0;
+            }
         });
     });
 }
 
 function setupOtherAnnualIncomes() {
-    model.otherAnnualIncomes.forEach((income, index) => {
-        addOtherAnnualIncome(income)
+    model.otherAnnualIncomes.forEach((_, index) => {
+        addOtherAnnualIncome(index)
     })    
 }
 
-function addOtherAnnualIncome(income) {
+function addOtherAnnualIncome(index) {
     const container = document.getElementById('otherAnnualIncomeContainer');
     const template = document.getElementById('otherAnnualIncomeTemplate');
     const clone = template.content.cloneNode(true);
   
-    const ageInput = clone.querySelector('.otherAnnualIncomeAge');
-    const amountInput = clone.querySelector('.otherAnnualIncomeAmount');
-    const adjustCheckbox = clone.querySelector('.otherAnnualIncomeAdjust');
     const removeBtn = clone.querySelector('.remove-btn');
   
     const incomeElement = clone.firstElementChild;
 
-    ageInput.value = income.age;
-    amountInput.value = income.amount;
-    adjustCheckbox.checked = income.adjustForInflation;
-  
-    ageInput.addEventListener('input', () => {
-        income.age = parseFloat(ageInput.value) || 0
-        updateProjection()
-    });
-    
-    amountInput.addEventListener('input', () => {
-        income.amount = parseFloat(amountInput.value) || 0
-        updateProjection()
-    });
-
-    adjustCheckbox.addEventListener('change', () => {
-        income.adjustCheckbox = adjustCheckbox.checked
-        updateProjection()
-    });
+    const reactiveIncome = model.otherAnnualIncomes[index];
+    bindChildElements(incomeElement, reactiveIncome, false);
 
     removeBtn.addEventListener('click', function () {
-        // Remove from model
-        const index = model.otherAnnualIncomes.indexOf(income);
-        if (index !== -1) {
-            model.otherAnnualIncomes.splice(index, 1);
-        }
-
+        model.otherAnnualIncomes.splice(index, 1);
         // Remove from DOM
         incomeElement.remove();
         updateProjection();
     });
   
     container.appendChild(clone);
-}
-
-function getOtherAnnualIncome() {
-    const entries = document.querySelectorAll('.otherAnnualIncome-entry');
-    const otherAnnualIncomes = [];
-    entries.forEach(entry => {
-        const age = parseInt(entry.querySelector('.otherAnnualIncomeAge').value);
-        const amount = parseFloat(entry.querySelector('.otherAnnualIncomeAmount').value);
-        const adjust = entry.querySelector('.otherAnnualIncomeAdjust').checked;
-        
-        if (!isNaN(age) && !isNaN(amount)) {
-            otherAnnualIncomes.push({ age, amount, adjust });
-        }
-    });
-    return otherAnnualIncomes;
 }
 
 function addLumpSum(age = '', amount = '') {

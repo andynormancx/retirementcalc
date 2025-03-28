@@ -60,9 +60,7 @@ export function generateProjection(model) {
         if (secondAge >= secondStatePensionAge) {
           annualStatePensionInflationAdjusted += statePensionInflationAdjusted;
         }
-        
-        console.log(firstAge);
-      
+              
         grossIncomeRates.forEach(rate => {
             if (firstAge >= rate.age) {
                 currentGrossIncome = rate.amount; // Update to latest applicable rate
@@ -195,25 +193,64 @@ export function generateProjection(model) {
 }
 
 export function createReactiveModel(data, onChange) {
-    const proxy = new Proxy(data, {
-      set(target, prop, value) {
-        const oldVal = target[prop];
+    function makeReactive(obj) {
+        if (typeof obj !== 'object' || obj === null) return obj;
 
-        if (oldVal !== value) {
-          target[prop] = value;
-          onChange(prop, value, oldVal);
+        if (obj.__isProxy) return obj;
+
+        const proxy = new Proxy(obj, {
+            set(target, prop, value) {
+                const oldVal = target[prop];
+                const newVal = makeReactive(value); // wrap new values
+                target[prop] = newVal;
+
+                if (oldVal !== newVal) {
+                    onChange(prop, newVal, oldVal);
+                }
+
+                return true;
+            },
+            deleteProperty(target, prop) {
+                const oldVal = target[prop];
+                delete target[prop];
+                onChange(prop, undefined, oldVal);
+                return true;
+            }
+        });
+
+        Object.defineProperty(proxy, '__isProxy', {
+            value: true,
+            enumerable: false
+        });
+
+        // Wrap existing fields
+        for (const key in obj) {
+            obj[key] = makeReactive(obj[key]);
         }
 
-        return true;
-      }
-    });
+        return proxy;
+    }
 
-    // we need to be able to get the raw data later to clone it so
-    // we can pass a copy to generateProjection
-    Object.defineProperty(proxy, 'getRawData', {
-        value: () => data,
+    const reactive = makeReactive(structuredClone(data));
+
+    function deproxy(obj) {
+        if (typeof obj !== 'object' || obj === null) return obj;
+
+        if (Array.isArray(obj)) {
+            return obj.map(deproxy);
+        }
+
+        const result = {};
+        for (const key in obj) {
+            result[key] = deproxy(obj[key]);
+        }
+        return result;
+    }
+
+    Object.defineProperty(reactive, 'getRawData', {
+        value: () => deproxy(reactive),
         enumerable: false
     });
 
-    return proxy
+    return reactive;
 }
