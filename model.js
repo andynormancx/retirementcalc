@@ -21,7 +21,7 @@ export function generateProjection(model) {
     const monthlyWithdrawlsBeforeInflation = [];
 
     const startYear = new Date().getFullYear();
-    const maxYears = 100;
+    const maxYears = 120;
 
     const tableBody = document.getElementById('projectionTable').querySelector('tbody');
     tableBody.innerHTML = '';
@@ -48,7 +48,7 @@ export function generateProjection(model) {
     annualWithdrawls.push(0);
     monthlyWithdrawlsBeforeInflation.push(0);
 
-    for (; year < startYear + maxYears && balance > 0 && firstAge <= 95; year++) {
+    for (; year < startYear + maxYears && balance > 0 && firstAge <= 120; year++) {
         firstAge = year - firstBirthYear;
         secondAge = year - secondBirthYear;              
         let annualStatePensionInflationAdjusted = 0;
@@ -187,46 +187,79 @@ export function generateProjection(model) {
     Plotly.newPlot('chart', data, layout);
 }
 
-export function createReactiveModel(data, onChange) {
-    function makeReactive(obj) {
-        if (typeof obj !== 'object' || obj === null) return obj;
+export function makeReactive(obj, onChange) {
+    if (typeof obj !== 'object' || obj === null) return obj;
 
-        if (obj.__isProxy) return obj;
+    if (obj.__isOurProxy) {
+        console.log('makeReactive already proxied', obj)
 
-        const proxy = new Proxy(obj, {
-            set(target, prop, value) {
-                const oldVal = target[prop];
-                const newVal = makeReactive(value); // wrap new values
-                target[prop] = newVal;
+        return obj;
+    } else {
+        console.log('makeReactive proxying', obj)
+    }
+    const proxy = new Proxy(obj, {
+        set(target, prop, value) {
+            console.log('wrapped set', target, prop, value)
 
-                if (oldVal !== newVal) {
-                    onChange(prop, newVal, oldVal);
-                }
+            const oldVal = target[prop];
+            const newVal = makeReactive(value); // wrap new values
+            target[prop] = newVal;
 
-                return true;
-            },
-            deleteProperty(target, prop) {
-                const oldVal = target[prop];
-                delete target[prop];
-                onChange(prop, undefined, oldVal);
-                return true;
+            if (oldVal !== newVal) {
+                onChange(prop, newVal, oldVal);
             }
-        });
 
-        Object.defineProperty(proxy, '__isProxy', {
-            value: true,
-            enumerable: false
-        });
-
-        // Wrap existing fields
-        for (const key in obj) {
-            obj[key] = makeReactive(obj[key]);
+            return true;
+        },
+        deleteProperty(target, prop) {
+            const oldVal = target[prop];
+            delete target[prop];
+            onChange(prop, undefined, oldVal);
+            return true;
         }
+    });
 
-        return proxy;
+    Object.defineProperty(proxy, '__isOurProxy', {
+        value: true,
+        enumerable: false
+    });
+
+    // Wrap existing fields
+    for (const key in obj) {
+        obj[key] = makeReactive(obj[key], onChange);
     }
 
-    const reactive = makeReactive(structuredClone(data));
+    if (Array.isArray(obj)) {
+        ['push', 'unshift', 'splice'].forEach(method => {
+            proxy[method] = (...args) => {
+                const wrappedArgs = args.map(arg => makeReactive(arg), onChange);
+                const result = Array.prototype[method].apply(proxy, wrappedArgs);
+
+                onChange(method, proxy);
+                return result;
+            };
+        });
+    }
+
+    return proxy;
+}
+
+
+export function createReactiveModel(data, onChange) {
+    let initializing = true;
+
+    function guardedOnChange(prop, newVal, oldVal) {
+        console.log('guardedOnChange', prop, newVal, oldVal)
+
+        if (!initializing) {
+            onChange(prop, newVal, oldVal);
+        } else {
+            console.log('guardedOnChange noop', prop, newVal, oldVal)
+        }
+    }
+
+    const reactive = makeReactive(structuredClone(data), guardedOnChange);
+    initializing = false;
 
     function deproxy(obj) {
         if (typeof obj !== 'object' || obj === null) return obj;

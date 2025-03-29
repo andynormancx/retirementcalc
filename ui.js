@@ -1,5 +1,6 @@
-import { createReactiveModel } from './model.js';
+import { createReactiveModel, makeReactive } from './model.js';
 import { generateProjection } from './model.js';
+import { uuidv4 } from './state.js'
 
 let model = null
 
@@ -8,7 +9,10 @@ export function setupUI(defaultState) {
         updateProjection()
     });
 
-    setupOtherAnnualIncomes()
+    setupList('otherAnnualIncomeContainer', 'otherAnnualIncomeTemplate',
+        model.otherAnnualIncomes, createEmptyListItemOtherAnnualIncome)
+    
+    //setupOtherAnnualIncomes()
     setupLumpSums()
     setupGrossIncomeRates()
 
@@ -95,11 +99,64 @@ function bindChildElements(parentElement, modelToBind, ignoreNestedBindings) {
     });
 }
 
+function setupList(listContainerId, listTemplateId, listData, createEmptyItemHandler) {
+    const container = document.getElementById(listContainerId);
+    const template = document.getElementById(listTemplateId);
+
+    container.innerHTML = '';
+
+    listData.forEach((item, index) => {
+        addListItem(listData, item, container, template)
+    })
+
+    const btn = container.parentElement.querySelector('.btn-add')
+    btn.addEventListener('click', function() {
+        const emptyListItem = makeReactive(createEmptyItemHandler(), updateProjection)
+        listData.push(emptyListItem)
+        addListItem(listData, emptyListItem, container, template)
+    })
+}
+
+function addListItem(listItems, item, container, template) {
+    const clone = template.content.cloneNode(true);
+  
+    const itemElement = clone.firstElementChild;
+    bindChildElements(itemElement, item, false);
+
+    const removeBtn = clone.querySelector('.remove-btn');
+
+    removeBtn.addEventListener('click', function () {
+        removeListItem(listItems, item, itemElement)
+    });
+  
+    container.appendChild(clone);    
+}
+
+function removeListItem(listItems, item, itemElement) {
+    const index = listItems.findIndex(item => item.id === item.id);
+    if (index !== -1) {
+        // This reassigns a new array (which triggers Proxy set trap)
+        listItems.splice(index, 1);
+    }
+
+    // Remove from DOM
+    itemElement.remove();
+    updateProjection(); // TODO do we need this or will the proxy handle this
+}
+
+function createEmptyListItemOtherAnnualIncome() {
+    return {
+        id: uuidv4(),
+        age: model.firstStatePensionAge,
+        amount: 0
+    }    
+}
+
 function setupOtherAnnualIncomes() {
     document.getElementById('otherAnnualIncomeContainer').innerHTML = '';
 
-    model.otherAnnualIncomes.forEach((_, index) => {
-        addOtherAnnualIncome(index)
+    model.otherAnnualIncomes.forEach((income, index) => {
+        addOtherAnnualIncome(income.id)
     })
 
     const btn = document.getElementById('otherAnnualIncomeAddBtn');
@@ -132,6 +189,7 @@ function addOtherAnnualIncome(index) {
 
 function addNewOtherAnnualIncome(index) {
     model.otherAnnualIncomes.push({
+        id: uuidv4(),
         age: model.firstStatePensionAge,
         amount: 0
     })
@@ -175,6 +233,7 @@ function addLumpSum(index) {
 
 function addNewLumpSum() {
     model.lumpSums.push({
+        id: uuidv4(),
         age: model.firstStatePensionAge,
         amount: 0
     })
@@ -218,6 +277,7 @@ function addGrossIncomeRate(index) {
 
 function addNewGrossIncomeRate() {
     model.grossExpenditureRates.push({
+        id: uuidv4(),
         age: model.firstStatePensionAge,
         amount: 0
     })
