@@ -16,6 +16,35 @@ export function setupUI(defaultState) {
     updateProjection()
 }
 
+function listSavedModels() {
+    const models = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith('retirementModel:')) {
+            models.push(key.replace('retirementModel:', ''));
+        }
+    }
+    return models;
+}
+
+function saveModelToLocalStorage(model, name) {
+    const data = model.getRawData();
+    localStorage.setItem(`retirementModel:${name}`, JSON.stringify(data));
+}
+
+function loadModelFromLocalStorage(name) {
+    const raw = localStorage.getItem(`retirementModel:${name}`);
+    if (!raw) return null;
+
+    try {
+        const parsed = JSON.parse(raw);
+        return parsed;
+    } catch (e) {
+        console.error('Failed to parse model:', e);
+        return null;
+    }
+}
+
 function updateProjection() {
     const modelCopy = structuredClone(model.getRawData())
 
@@ -67,6 +96,8 @@ function bindChildElements(parentElement, modelToBind, ignoreNestedBindings) {
 }
 
 function setupOtherAnnualIncomes() {
+    document.getElementById('otherAnnualIncomeContainer').innerHTML = '';
+
     model.otherAnnualIncomes.forEach((_, index) => {
         addOtherAnnualIncome(index)
     })
@@ -108,6 +139,8 @@ function addNewOtherAnnualIncome(index) {
 }
 
 function setupLumpSums() {
+    document.getElementById('lumpSumsContainer').innerHTML = '';
+
     model.lumpSums.forEach((_, index) => {
         addLumpSum(index)
     })
@@ -149,6 +182,8 @@ function addNewLumpSum() {
 }
 
 function setupGrossIncomeRates() {
+    document.getElementById('grossIncomeRatesContainer').innerHTML = '';
+
     model.grossExpenditureRates.forEach((_, index) => {
         addGrossIncomeRate(index)
     })
@@ -188,3 +223,67 @@ function addNewGrossIncomeRate() {
     })
     addGrossIncomeRate(model.grossExpenditureRates.length - 1)
 }
+
+
+function refreshSavedModelsDropdown() {
+    const dropdown = document.getElementById('savedModelsDropdown');
+    if (!dropdown) return;
+
+    const currentValue = dropdown.value;
+    dropdown.innerHTML = '';
+
+    const models = listSavedModels();
+    models.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        dropdown.appendChild(option);
+    });
+
+    dropdown.value = currentValue;
+}
+
+function handleSave() {
+    const input = document.getElementById('saveModelName');
+    if (!input) return;
+
+    const name = input.value.trim();
+    if (!name) {
+        alert('Please enter a name to save the model.');
+        return;
+    }
+
+    saveModelToLocalStorage(model, name);
+    refreshSavedModelsDropdown();
+    alert(`Model "${name}" saved.`);
+}
+
+function handleLoad() {
+    const dropdown = document.getElementById('savedModelsDropdown');
+    if (!dropdown) return;
+
+    const name = dropdown.value;
+    if (!name) {
+        alert('Please select a saved model to load.');
+        return;
+    }
+
+    const loaded = loadModelFromLocalStorage(name);
+    if (loaded) {
+        model = createReactiveModel(loaded, () => updateProjection());
+        setupUI(loaded);
+        updateProjection();
+    } else {
+        alert(`Failed to load model "${name}".`);
+    }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    const saveBtn = document.getElementById('saveModelBtn');
+    const loadBtn = document.getElementById('loadModelBtn');
+
+    if (saveBtn) saveBtn.addEventListener('click', handleSave);
+    if (loadBtn) loadBtn.addEventListener('click', handleLoad);
+
+    refreshSavedModelsDropdown();
+});
