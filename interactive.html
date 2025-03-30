@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre.min.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Retirement Projection</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.6.4/math.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre.css">
+    <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre-icons.min.css">
     <style>
 
         #projectionTable {
@@ -44,122 +44,158 @@
 </head>
 <template id="lumpSumTemplate">
     <div class="lump-sum-entry">
-      <label>Age: <input data-bind="otherAnnualIncomes.age" type="number" class="lumpAge"></label>
-      <label>Amount (£): <input data-bind="otherAnnualIncomes.amount" type="number" class="lumpAmount" step="1000"></label>
-      <button type="button" class="remove-btn btn btn-sm">Remove</button>
+        <div class="form-group">
+            <label class="form-label form-inline label-sm">Age: <input data-bind="otherAnnualIncomes.age" type="number" class="form-input input-sm lumpAge"></label>
+            <label class="form-label form-inline label-sm">Amount (£): <input data-bind="otherAnnualIncomes.amount" type="number" class="form-input input-sm lumpAmount" step="1000"></label>
+        </div>
+        <button type="button" class="remove-btn btn btn-sm">Remove</button>
     </div>
 </template>
   
 <template id="grossIncomeRateTemplate">
     <div class="grossincome-rate-entry">
-        <label>Age: <input data-bind="grossExpenditureRates.age" type="number" class="withdrawalAge"></label>
-        <label>Monthly Amount (£): <input data-bind="grossExpenditureRates.amount" type="number" class="grossIncomeAmount" step="100"></label>
+        <div class="form-group">
+            <label class="form-label form-inline label-sm">Age: <input data-bind="grossExpenditureRates.age" type="number" class="form-input input-sm withdrawalAge"></label>
+            <label class="form-label form-inline label-sm">Monthly Amount (£): <input data-bind="grossExpenditureRates.amount" type="number" class="form-input input-sm grossIncomeAmount" step="100"></label>
+        </div>
         <button type="button" class="remove-btn btn btn-sm">Remove</button>
     </div>
 </template>
 
 <template id="otherAnnualIncomeTemplate">
     <div class="otherAnnualIncome-entry">
-        <label>Age: <input data-bind="otherAnnualIncomes.age" type="number" class="otherAnnualIncomeAge"></label>
-        <label>Amount (£): <input data-bind="otherAnnualIncomes.amount" type="number" class="otherAnnualIncomeAmount" step="100"></label>
-        <label><input data-bind="otherAnnualIncomes.adjustForInflation"  type="checkbox" class="otherAnnualIncomeAdjust"> Adjust for inflation</label>
+        <div class="form-group">
+            <label class="form-label form-inline label-sm">Age: <input data-bind="otherAnnualIncomes.age" type="number" class="form-input input-sm otherAnnualIncomeAge"></label>
+            <label class="form-label form-inline label-sm">Amount (£): <input data-bind="otherAnnualIncomes.amount" type="number" class="form-input input-sm otherAnnualIncomeAmount" step="100"></label>
+            <label class="form-label form-inline label-sm"><input data-bind="otherAnnualIncomes.adjustForInflation"  type="checkbox" class="form-checkbox input-sm otherAnnualIncomeAdjust"> Adjust for inflation</label>
+        </div>
         <button type="button" class="remove-btn btn btn-sm">Remove</button>
     </div>
 </template>
 <body>
-    <h3>Interactive Retirement Projection</h1>
+    <h3>Retirement Projection - <span id="projectionName"/></h1>
 
-    <details>
-        <summary>Scenarios</summary>
-        <div class="container">
-            <div class="columns">
-                <div class="column col-3">
-                    <label for="saveModelName" class="form-label label-sm">Save as:</label>
-                    <input type="text" id="saveModelName" class="form-input input-sm" placeholder="e.g. early-retirement" />
-                    <button id="saveModelBtn" class="btn btn-primary btn-sm" type="button">Save</button>
-                </div>
-                <div class="column col-3">
-                    <label for="savedModelsDropdown" class="form-label label-sm">Load saved model:</label>
-                    <select id="savedModelsDropdown" class="form-select select-sm"></select>
+    <div class="accordion">
+        <input type="checkbox" id="scenariosAccordion" name="accordion-checkbox" hidden>
+        <label class="accordion-header" for="scenariosAccordion">
+          <i class="icon icon-arrow-right mr-1"></i>
+          Scenarios
+        </label>
+        <div class="accordion-body">
+            <div class="container">
+                <div class="columns">
+                    <div class="column col-4">
+                        <label for="saveModelName" class="form-label label-sm">Save as:</label>
+                        <input type="text" id="saveModelName" class="form-input input-sm" placeholder="e.g. early-retirement" />
+                        <button id="saveModelBtn" class="btn btn-primary btn-sm" type="button">Save</button>
+                    </div>
+                    <div class="column col-4">
+                        <label for="savedModelsDropdown" class="form-label label-sm">Load saved model:</label>
+                        <select id="savedModelsDropdown" class="form-select select-sm"></select>
+                    </div>
                 </div>
             </div>
         </div>
-    </details>
+    </div>
 
-    <details>
-        <summary>General details</summary>
-        <div class="container">
-          <div class="columns">
-            <div class="column col-3">
-              <div class="form-group">
-                <label for="initialBalance" class="form-label label-sm">Initial Balance (£):</label>
-                <input data-bind="initialBalance" class="form-input input-sm" type="number" id="initialBalance" value="950000" step="10000">
-              </div>
-              <div class="form-group">
-                <label for="annualReturn" class="form-label label-sm">Annual Return (%):</label>
-                <input data-bind="annualReturn" class="form-input input-sm" type="number" id="annualReturn" value="4.5" step="0.1">
-              </div>
-              <div class="form-group">
-                <label for="inflationRate" class="form-label label-sm">Inflation Rate (%):</label>
-                <input data-bind="inflationRate" class="form-input input-sm" type="number" id="inflationRate" value="2.0" step="0.1">
-              </div>
-              <div class="form-group">
-                <label for="grossIncome" class="form-label label-sm">Monthly Gross Income (£):</label>
-                <input data-bind="grossIncome" class="form-input input-sm" type="number" id="grossIncome" value="3000">
-              </div>
+    <div class="accordion">
+        <input type="checkbox" id="scenariosGeneralDetails" hidden>
+        <label class="accordion-header" for="scenariosGeneralDetails">
+            <i class="icon icon-arrow-right mr-1"></i>
+            General details
+        </label>
+        <div class="accordion-body">
+            <div class="container">
+                <div class="columns">
+                    <div class="column col-3">
+                        <div class="form-group">
+                            <label for="initialBalance" class="form-label label-sm">Initial Balance (£):</label>
+                            <input data-bind="initialBalance" class="form-input input-sm" type="number" id="initialBalance"
+                                value="950000" step="10000">
+                        </div>
+                        <div class="form-group" style="display: none;">
+                            <label for="grossIncome" class="form-label label-sm">Monthly Gross Income (£):</label>
+                            <input data-bind="grossIncome" class="form-input input-sm" type="number" id="grossIncome"
+                                value="3000">
+                        </div>
+                    </div>
+                    <div class="column col-3">
+                        <div class="form-group">
+                            <label for="annualReturn" class="form-label label-sm">Annual Return (%):</label>
+                            <input data-bind="annualReturn" class="form-input input-sm" type="number" id="annualReturn"
+                                value="4.5" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="inflationRate" class="form-label label-sm">Inflation Rate (%):</label>
+                            <input data-bind="inflationRate" class="form-input input-sm" type="number" id="inflationRate"
+                                value="2.0" step="0.1">
+                        </div>
+                    </div>
+                    <div class="column col-3">
+                        <div class="form-group">
+                            <label for="firstStatePensionAge" class="form-label label-sm">First State Pension Age:</label>
+                            <input data-bind="firstStatePensionAge" class="form-input input-sm" type="number"
+                                id="firstStatePensionAge" value="67">
+                        </div>
+                        <div class="form-group">
+                            <label for="secondStatePensionAge" class="form-label label-sm">Second State Pension Age:</label>
+                            <input data-bind="secondStatePensionAge" class="form-input input-sm" type="number"
+                                id="secondStatePensionAge" value="66">
+                        </div>
+                        <div class="form-group">
+                            <label for="initialStatePension" class="form-label label-sm">Initial state pension (£):</label>
+                            <input data-bind="initialStatePension" class="form-input input-sm" type="number"
+                                id="initialStatePension" value="12000">
+                        </div>
+                    </div>
+                    <div class="column col-3">
+                        <div class="form-group">
+                            <label for="firstBirthYear" class="form-label label-sm">First Birth Year:</label>
+                            <input data-bind="firstBirthYear" class="form-input input-sm" type="number" id="firstBirthYear"
+                                value="1971">
+                        </div>
+                        <div class="form-group">
+                            <label for="secondBirthYear" class="form-label label-sm">Second Birth Year:</label>
+                            <input data-bind="secondBirthYear" class="form-input input-sm" type="number"
+                                id="secondBirthYear" value="1960">
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="column col-3">
-                <div class="form-group">
-                  <label for="firstStatePensionAge" class="form-label label-sm">First State Pension Age:</label>
-                  <input data-bind="firstStatePensionAge" class="form-input input-sm" type="number" id="firstStatePensionAge" value="67">
-                </div>
-                <div class="form-group">
-                  <label for="secondStatePensionAge" class="form-label label-sm">Second State Pension Age:</label>
-                  <input data-bind="secondStatePensionAge" class="form-input input-sm" type="number" id="secondStatePensionAge" value="66">
-                </div>
-                <div class="form-group">
-                  <label for="initialStatePension" class="form-label label-sm">Initial state pension (£):</label>
-                  <input data-bind="initialStatePension" class="form-input input-sm" type="number" id="initialStatePension" value="12000">
-                </div>
-              </div>
-            <div class="column col-3">
-                <div class="form-group">
-                    <label for="firstBirthYear" class="form-label label-sm">First Birth Year:</label>
-                    <input data-bind="firstBirthYear" class="form-input input-sm" type="number" id="firstBirthYear" value="1971">
-                  </div>
-                <div class="form-group">
-                    <label for="secondBirthYear" class="form-label label-sm">Second Birth Year:</label>
-                    <input data-bind="secondBirthYear" class="form-input input-sm" type="number" id="secondBirthYear" value="1960">
-                </div>
-            </div>
-          </div>
         </div>
-    </details>
+    </div>
+
+    <div class="accordion">
+        <input type="checkbox" id="scenariosDetails" hidden>
+        <label class="accordion-header" for="scenariosDetails">
+            <i class="icon icon-arrow-right mr-1"></i>
+            Details
+        </label>
+        <div class="accordion-body">
+            <div class="container">
+                <div class="columns">
+                    <div class="column col-4">
+                        <h5>Lump Sums</h5>
+                        <div id="lumpSumsContainer"></div>
+                        <button id="lumpSumsAddBtn" class="btn btn-add btn-sm">Add Lump Sum</button>
+                    </div>
+                    <div class="column col-4">
+                        <h5>Monthly Gross Income Rates</h5>
+                        <div id="grossIncomeRatesContainer"></div>
+                        <button id="grossIncomeRatesAddBtn" class="btn btn-add btn-sm">Add Gross Income Rate</button>
+                    </div>
+                    <div class="column col-4">
+                        <h5>Other Gross Annual Income</h5>
+                        <div>
+                            <div id="otherAnnualIncomeContainer"></div>
+                            <button id="otherAnnualIncomeAddBtn" class="btn btn-add btn-sm">Add Other Gross Annual Income</button>    
+                        </div>                
+                    </div>
+                </div>
+            </div>    
+        </div>
+    </div>
     
-    <details>
-        <div class="container">
-            <div class="columns">
-                <div class="column col-6">
-                    <h4>Lump Sums</h2>
-                    <div id="lumpSumsContainer"></div>
-                    <button id="lumpSumsAddBtn" class="btn btn-add">Add Lump Sum</button>
-                </div>
-                <div class="column col-6">
-                    <h4>Monthly Gross Income Rates</h2>
-                    <div id="grossIncomeRatesContainer"></div>
-                    <button id="grossIncomeRatesAddBtn" class="btn btn-add">Add Gross Income Rate</button>
-                </div>
-            </div>
-        </div>
-
-
-        <h4>Other Gross Annual Income</h2>
-        <div>
-            <div id="otherAnnualIncomeContainer"></div>
-            <button id="otherAnnualIncomeAddBtn" class="btn btn-add">Add Other Gross Annual Income</button>    
-        </div>
-    </details>    
-
     <div id="zeroBalanceAgeMessage" style="margin-top: 1em; font-weight: bold;"></div>
 
     <div id="chart"></div>
