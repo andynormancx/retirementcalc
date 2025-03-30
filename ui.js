@@ -51,11 +51,21 @@ function loadModelFromLocalStorage(name) {
     }
 }
 
-function updateProjection() {
+function updateProjectionInt() {
     const modelCopy = structuredClone(model.getRawData())
 
     generateProjection(modelCopy)
 }
+
+function debounce(func, delay) {
+    let timeoutId;
+    return function(...args) {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => func.apply(this, args), delay);
+    };
+}
+
+const updateProjection = debounce(updateProjectionInt, 300);
 
 function bindInputs() {
     bindChildElements(document, model, true)
@@ -89,15 +99,13 @@ function bindChildElements(parentElement, modelToBind, ignoreNestedBindings) {
         }
 
         // Update model on user input
-        input.addEventListener('input', () => {
-            console.log(`Setting ${key} to`, input.type === 'checkbox' ? input.checked : parseFloat(input.value) || 0);
-            
+        input.oninput = function () {            
             if (input.type === 'checkbox') {
                 modelToBind[key] = input.checked;
             } else {
                 modelToBind[key] = parseFloat(input.value) || 0;
             }
-        });
+        }
     });
 }
 
@@ -112,11 +120,11 @@ function setupList(listContainerId, listTemplateId, listData, createEmptyItemHan
     })
 
     const btn = container.parentElement.querySelector('.btn-add')
-    btn.addEventListener('click', function() {
+    btn.onclick = function () {
         const emptyListItem = makeReactive(createEmptyItemHandler(), updateProjection)
         listData.push(emptyListItem)
         addListItem(listData, emptyListItem, container, template)
-    })
+    }
 }
 
 function addListItem(listItems, item, container, template) {
@@ -135,21 +143,33 @@ function addListItem(listItems, item, container, template) {
 }
 
 function removeListItem(listItems, item, itemElement) {
-    const index = listItems.findIndex(item => item.id === item.id);
-    if (index !== -1) {
+    let matchedIndex = -1;
+
+    listItems.forEach((itemToCheck, index) => {
+        if (matchedIndex !== -1) {
+            return
+        }
+        if (itemToCheck.id === item.id) {
+            matchedIndex = index
+            return
+        }
+    })
+
+    if (matchedIndex !== -1) {
         // This reassigns a new array (which triggers Proxy set trap)
-        listItems.splice(index, 1);
+        listItems.splice(matchedIndex, 1);
     }
 
     // Remove from DOM
     itemElement.remove();
+
     updateProjection(); // TODO do we need this or will the proxy handle this
 }
 
 function createEmptyListItemOtherAnnualIncome() {
     return {
         id: uuidv4(),
-        age: model.firstStatePensionAge,
+        age: null,
         amount: 0
     }    
 }
@@ -157,7 +177,7 @@ function createEmptyListItemOtherAnnualIncome() {
 function createEmptyListItemLumpSums() {
     return {
         id: uuidv4(),
-        age: model.firstStatePensionAge,
+        age: null,
         amount: 0
     }
 }
@@ -165,7 +185,7 @@ function createEmptyListItemLumpSums() {
 function createEmptyListItemGrossExpenditureRates() {
     return {
         id: uuidv4(),
-        age: model.firstStatePensionAge,
+        age: null,
         amount: 0
     }
 }
@@ -177,7 +197,7 @@ function refreshSavedModelsDropdown() {
     const currentValue = dropdown.value;
     dropdown.innerHTML = '';
 
-    const models = listSavedModels();
+    const models = listSavedModels().sort();
     models.forEach(name => {
         const option = document.createElement('option');
         option.value = name;
@@ -198,6 +218,9 @@ function handleSave() {
         return;
     }
 
+    const titleNameSpan = document.getElementById('projectionName');
+    titleNameSpan.innerText = name;
+
     saveModelToLocalStorage(model, name);
     refreshSavedModelsDropdown();
     alert(`Model "${name}" saved.`);
@@ -213,14 +236,27 @@ function handleLoad() {
         return;
     }
 
+    const titleNameSpan = document.getElementById('projectionName');
+
     const loaded = loadModelFromLocalStorage(name);
     if (loaded) {
+        loaded.name = name;
+        titleNameSpan.innerText = name;
+
+        sortLists(loaded)
+
         model = createReactiveModel(loaded, () => updateProjection());
         setupUI(loaded);
-        updateProjection();
     } else {
         alert(`Failed to load model "${name}".`);
     }
+}
+
+// when we load a scenario sort the lists by age
+function sortLists(model) {
+    model.grossExpenditureRates = model.grossExpenditureRates.sort((item1, item2) => item1.age > item2.age)
+    model.lumpSums = model.lumpSums.sort((item1, item2) => item1.age > item2.age)
+    model.otherAnnualIncomes = model.otherAnnualIncomes.sort((item1, item2) => item1.age > item2.age)
 }
 
 window.addEventListener('DOMContentLoaded', () => {

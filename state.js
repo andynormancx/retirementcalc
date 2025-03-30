@@ -2,6 +2,7 @@ export function getDefaultState(currentYear) {
     const currentFirstAge = currentYear - 1971
 
     const defaults = {
+        name: '',
         currentYear: currentYear,
         initialBalance: 950000,
         annualReturn: 4.5,

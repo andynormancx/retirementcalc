@@ -165,7 +165,7 @@ export function generateProjection(model) {
     const data = [traceBalances, traceStatePension, traceAnnualWithdrawls];
 
     const layout = {
-        xaxis: { title: 'Age', range: [startYear - firstBirthYear - 1, 95] },
+        xaxis: { title: 'Age', range: [startYear - firstBirthYear - 1, 100] },
         yaxis: { title: 'Balance (£)', tickformat: ',' },
         height: 600
     };
@@ -174,15 +174,15 @@ export function generateProjection(model) {
     const messageDiv = document.getElementById('zeroBalanceAgeMessage');
     if (zeroBalanceIndex !== -1) {
         const zeroAge = agesFirst[zeroBalanceIndex];
-        if (zeroAge < 95 && zeroAge > 85) {
-            messageDiv.innerHTML = `<span class="label label-warning">Balance reaches zero at age ${zeroAge}.</label>`;
+        if (zeroAge < 100 && zeroAge > 85) {
+            messageDiv.innerHTML = `<span class="label label-rounded label-warning">Balance reaches zero at age ${zeroAge}</label>`;
         } else if (zeroAge <= 85) {
-            messageDiv.innerHTML = `<span class="label label-error">Balance reaches zero at age ${zeroAge}.</label>`;
+            messageDiv.innerHTML = `<span class="label label-rounded label-error">Balance reaches zero at age ${zeroAge}</label>`;
         } else {
-            messageDiv.innerHTML = `<span class="label label-success">Balance does not reach zero before age 95 (final age: ${zeroAge}).</label>`;
+            messageDiv.innerHTML = `<span class="label label-rounded label-success">Balance does not reach zero before age 100 (final age: ${zeroAge})</label>`;
         }
     } else {
-        messageDiv.innerHTML = '<span class="label label-success">Balance never reaches zero.</label>';
+        messageDiv.innerHTML = '<span class="label label-rounded label-success">Balance never reaches zero</label>';
     }
     Plotly.newPlot('chart', data, layout);
 }
@@ -191,16 +191,10 @@ export function makeReactive(obj, onChange) {
     if (typeof obj !== 'object' || obj === null) return obj;
 
     if (obj.__isOurProxy) {
-        console.log('makeReactive already proxied', obj)
-
         return obj;
-    } else {
-        console.log('makeReactive proxying', obj)
     }
     const proxy = new Proxy(obj, {
         set(target, prop, value) {
-            console.log('wrapped set', target, prop, value)
-
             const oldVal = target[prop];
             const newVal = makeReactive(value); // wrap new values
             target[prop] = newVal;
@@ -249,12 +243,9 @@ export function createReactiveModel(data, onChange) {
     let initializing = true;
 
     function guardedOnChange(prop, newVal, oldVal) {
-        console.log('guardedOnChange', prop, newVal, oldVal)
 
         if (!initializing) {
             onChange(prop, newVal, oldVal);
-        } else {
-            console.log('guardedOnChange noop', prop, newVal, oldVal)
         }
     }
 
