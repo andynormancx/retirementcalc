@@ -121,7 +121,8 @@ export function generateProjection(model) {
             <td>${gainLossPct.toFixed(2)}%</td>
             <td>${formatCurrency(prevBalance)}</td>
             <td>${formatCurrency(balance)}</td>
-        `;
+            <td>${((requiredAnnualWithdrawlInflationAdjusted/prevBalance)*100).toFixed(2)}%</td>
+            `;
         tableBody.appendChild(row);
 
         years.push(year);
