@@ -62,14 +62,14 @@ export function generateProjection(model) {
         }
               
         grossIncomeRates.forEach(rate => {
-            if (firstAge >= rate.age) {
+            if (firstAge >= rate.age && rate.amount !== null) {
                 currentGrossIncome = rate.amount; // Update to latest applicable rate
             }
         });
 
         let otherGrossAnnualIncome = 0;
         otherGrossAnnualIncomeRates.forEach(rate => {
-            if (firstAge >= rate.age) {
+            if (firstAge >= rate.age && rate.amount !== null) {
                 if (rate.adjustForInflation) {
                     otherGrossAnnualIncome += rate.amount * Math.pow(1 + inflationRate, year - startYear);
                 } else {
@@ -87,11 +87,10 @@ export function generateProjection(model) {
 
         balance = balance + investmentGain;
         balance -= requiredAnnualWithdrawlInflationAdjusted
-        //balance += annualStatePensionInflationAdjusted;
 
         let lumpTotal = 0;
         lumpSums.forEach(({ age, amount }) => {
-            if (firstAge === age) {
+            if (firstAge === age && amount !== null) {
                 balance += amount;
                 lumpTotal += amount;
             }
@@ -160,7 +159,6 @@ export function generateProjection(model) {
         name: 'Annual (£)',
         line: { color: 'red' }
     };
-
 
     const data = [traceBalances, traceStatePension, traceAnnualWithdrawls];
 

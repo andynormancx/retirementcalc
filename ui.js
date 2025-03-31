@@ -170,7 +170,8 @@ function createEmptyListItemOtherAnnualIncome() {
     return {
         id: uuidv4(),
         age: null,
-        amount: 0
+        amount: null,
+        notes: ''
     }    
 }
 
@@ -178,7 +179,8 @@ function createEmptyListItemLumpSums() {
     return {
         id: uuidv4(),
         age: null,
-        amount: 0
+        amount: null,
+        notes: ''
     }
 }
 
@@ -186,7 +188,8 @@ function createEmptyListItemGrossExpenditureRates() {
     return {
         id: uuidv4(),
         age: null,
-        amount: 0
+        amount: null,
+        notes: ''
     }
 }
 
