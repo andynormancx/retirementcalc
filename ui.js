@@ -65,7 +65,26 @@ function debounce(func, delay) {
     };
 }
 
-const updateProjection = debounce(updateProjectionInt, 300);
+function setRecalcStatus(isCalculating) {
+    const status = document.getElementById('projectionStatus');
+    if (!status) {
+        return;
+    }
+    status.style.display = isCalculating ? 'flex' : 'none';
+}
+
+const debouncedProjection = debounce(() => {
+    try {
+        updateProjectionInt();
+    } finally {
+        setRecalcStatus(false);
+    }
+}, 300);
+
+const updateProjection = (...args) => {
+    setRecalcStatus(true);
+    debouncedProjection(...args);
+};
 
 function getNoteTooltipText(note) {
     if (note === null || note === undefined) {
