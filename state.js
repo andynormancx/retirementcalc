@@ -17,29 +17,34 @@ export function getDefaultState(currentYear) {
             {
                 id: uuidv4(),
                 age: currentFirstAge,
-                amount: 6000
+                amount: 6000,
+                notes: ''
             },
             {
                 id: uuidv4(),
                 age: 65,
-                amount: 5000
+                amount: 5000,
+                notes: ''
             },
             {
                 id: uuidv4(),
                 age: 75,
-                amount: 3000
+                amount: 3000,
+                notes: ''
             },
         ],
         lumpSums: [
             {
                 id: uuidv4(),
                 age: currentFirstAge,
-                amount: -90000
+                amount: -90000,
+                notes: ''
             },
             {
                 id: uuidv4(),
                 age: 65,
-                amount: 100000
+                amount: 100000,
+                notes: ''
             },
         ],
         otherAnnualIncomes: [
@@ -47,7 +52,8 @@ export function getDefaultState(currentYear) {
                 id: uuidv4(),
                 age: currentFirstAge,
                 amount: 1000,
-                adjustForInflation: false
+                adjustForInflation: false,
+                notes: ''
             },
         ]
     }

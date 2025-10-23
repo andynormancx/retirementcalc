@@ -112,7 +112,36 @@
     <div class="m-1"></div>
 </template>
 <body class="m-2">
-    <h3>Retirement Projection - <span id="projectionName"/></h1>
+    <div class="modal modal-lg" id="notesModal"><a class="modal-overlay" href="#modals-sizes" aria-label="Close"></a>
+        <div class="modal-container" role="document">
+          <div class="modal-header"><a id="notesModalCloseButton" class="btn btn-clear float-right" href="#modals-sizes" aria-label="Close"></a>
+            <div class="modal-title h5">Notes</div>
+          </div>
+          <div class="modal-body">
+            <div class="content">
+              <form>
+                <div class="form-group">
+                  <textarea class="form-input" id="notesModalTextarea" placeholder="Notes" rows="3"></textarea>
+                </div>
+              </form>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button id="notesModalUpdateButton" class="btn btn-primary">Update</button><a id="notesModalCancelButton" class="btn btn-link" href="#modals-sizes" aria-label="Close">Cancel</a>
+          </div>
+        </div>
+    </div>    
+
+    <div class="columns">
+        <div class="column col-9">
+            <h3>Retirement Projection - <span id="projectionName"></span></h3>
+        </div>
+        <div class="column col-3 text-right">
+            <button id="notesModalOpenButton" class="btn btn-primary btn-sm" type="button">
+                Notes
+            </button>
+        </div>
+    </div>
     
     <p class="text-small text-muted">All values are gross, income tax and pension contribution tax refunds are not accounted for.
         All figures are adjusted for inflation, so are at current year prices.</p>

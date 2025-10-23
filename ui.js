@@ -19,6 +19,12 @@ export function setupUI(defaultState) {
         model.grossExpenditureRates, createEmptyListItemGrossExpenditureRates)            
 
     bindInputs()
+
+    const notesOpenButton = document.getElementById("notesModalOpenButton")
+    if (notesOpenButton) {
+        notesOpenButton.addEventListener('click', openNotesModal)
+    }
+
     updateProjection()
 }
 
@@ -66,6 +72,24 @@ function debounce(func, delay) {
 }
 
 const updateProjection = debounce(updateProjectionInt, 300);
+
+function openNotesModal() {
+    const oldClasses = document.getElementById("notesModal").className
+
+    document.getElementById("notesModal").className += " active"
+
+    document.getElementById("notesModalUpdateButton").onclick = () => {
+        document.getElementById("notesModal").className = oldClasses
+    }
+
+    document.getElementById("notesModalCancelButton").onclick = () => {
+        document.getElementById("notesModal").className = oldClasses
+    }
+
+    document.getElementById("notesModalCloseButton").onclick = () => {
+        document.getElementById("notesModal").className = oldClasses
+    }
+}
 
 function bindInputs() {
     bindChildElements(document, model, true)
