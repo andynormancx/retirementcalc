@@ -19,12 +19,6 @@ export function setupUI(defaultState) {
         model.grossExpenditureRates, createEmptyListItemGrossExpenditureRates)            
 
     bindInputs()
-
-    const notesOpenButton = document.getElementById("notesModalOpenButton")
-    if (notesOpenButton) {
-        notesOpenButton.addEventListener('click', openNotesModal)
-    }
-
     updateProjection()
 }
 
@@ -73,22 +67,55 @@ function debounce(func, delay) {
 
 const updateProjection = debounce(updateProjectionInt, 300);
 
-function openNotesModal() {
-    const oldClasses = document.getElementById("notesModal").className
-
-    document.getElementById("notesModal").className += " active"
-
-    document.getElementById("notesModalUpdateButton").onclick = () => {
-        document.getElementById("notesModal").className = oldClasses
+function openNotesModal(item) {
+    const modal = document.getElementById("notesModal")
+    if (!modal) {
+        return
     }
 
-    document.getElementById("notesModalCancelButton").onclick = () => {
-        document.getElementById("notesModal").className = oldClasses
+    const textarea = document.getElementById("notesModalTextarea")
+    const updateButton = document.getElementById("notesModalUpdateButton")
+    const cancelButton = document.getElementById("notesModalCancelButton")
+    const closeButton = document.getElementById("notesModalCloseButton")
+    const overlay = modal.querySelector(".modal-overlay")
+
+    if (!textarea || !updateButton || !cancelButton || !closeButton) {
+        return
     }
 
-    document.getElementById("notesModalCloseButton").onclick = () => {
-        document.getElementById("notesModal").className = oldClasses
+    textarea.value = item.notes ?? ""
+
+    const cleanup = () => {
+        modal.classList.remove("active")
+        updateButton.onclick = null
+        cancelButton.onclick = null
+        closeButton.onclick = null
+        if (overlay) {
+            overlay.onclick = null
+        }
     }
+
+    const closeWithoutSaving = (event) => {
+        if (event) {
+            event.preventDefault()
+        }
+        cleanup()
+    }
+
+    updateButton.onclick = (event) => {
+        event.preventDefault()
+        item.notes = textarea.value
+        cleanup()
+    }
+
+    cancelButton.onclick = closeWithoutSaving
+    closeButton.onclick = closeWithoutSaving
+    if (overlay) {
+        overlay.onclick = closeWithoutSaving
+    }
+
+    modal.classList.add("active")
+    textarea.focus()
 }
 
 function bindInputs() {
@@ -158,10 +185,18 @@ function addListItem(listItems, item, container, template) {
     bindChildElements(itemElement, item, false);
 
     const removeBtn = clone.querySelector('.remove-btn');
+    if (removeBtn) {
+        removeBtn.addEventListener('click', function () {
+            removeListItem(listItems, item, itemElement)
+        });
+    }
 
-    removeBtn.addEventListener('click', function () {
-        removeListItem(listItems, item, itemElement)
-    });
+    const notesBtn = clone.querySelector('.notes-btn');
+    if (notesBtn) {
+        notesBtn.addEventListener('click', function () {
+            openNotesModal(item)
+        });
+    }
   
     container.appendChild(clone);    
 }

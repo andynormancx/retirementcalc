@@ -38,13 +38,13 @@ export function getDefaultState(currentYear) {
                 id: uuidv4(),
                 age: currentFirstAge,
                 amount: -90000,
-                notes: ''
+                notes: 'Paying off mortgage'
             },
             {
                 id: uuidv4(),
                 age: 65,
                 amount: 100000,
-                notes: ''
+                notes: 'Downsizing house'
             },
         ],
         otherAnnualIncomes: [
