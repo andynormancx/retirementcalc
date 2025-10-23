@@ -131,6 +131,88 @@ function getItemDetailsText(item) {
     return details.join(' • ');
 }
 
+function ensureNumberValue(value, fallback = null) {
+    if (value === null || value === undefined || value === '') {
+        return fallback;
+    }
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : fallback;
+}
+
+function normalizeList(list, defaults = {}) {
+    if (!Array.isArray(list)) {
+        return [];
+    }
+
+    return list.map(item => {
+        const normalized = { ...defaults, ...item };
+        if (!normalized.id) {
+            normalized.id = uuidv4();
+        }
+
+        if ('age' in normalized) {
+            normalized.age = ensureNumberValue(normalized.age, null);
+        }
+
+        if ('amount' in normalized) {
+            normalized.amount = ensureNumberValue(normalized.amount, null);
+        }
+
+        if ('adjustForInflation' in normalized) {
+            normalized.adjustForInflation = Boolean(normalized.adjustForInflation);
+        }
+
+        return normalized;
+    });
+}
+
+function normalizeModelData(data) {
+    if (!data || typeof data !== 'object') {
+        throw new Error('Model data is not a valid object.');
+    }
+
+    const normalized = { ...data };
+
+    normalized.lumpSums = normalizeList(normalized.lumpSums, { notes: '' });
+    normalized.grossExpenditureRates = normalizeList(normalized.grossExpenditureRates, { notes: '' });
+    normalized.otherAnnualIncomes = normalizeList(normalized.otherAnnualIncomes, { adjustForInflation: false, notes: '' });
+
+    normalized.initialBalance = ensureNumberValue(normalized.initialBalance, 0);
+    normalized.annualReturn = ensureNumberValue(normalized.annualReturn, 0);
+    normalized.inflationRate = ensureNumberValue(normalized.inflationRate, 0);
+    normalized.grossIncome = ensureNumberValue(normalized.grossIncome, 0);
+    normalized.firstBirthYear = ensureNumberValue(normalized.firstBirthYear, null);
+    normalized.secondBirthYear = ensureNumberValue(normalized.secondBirthYear, null);
+    normalized.firstStatePensionAge = ensureNumberValue(normalized.firstStatePensionAge, null);
+    normalized.secondStatePensionAge = ensureNumberValue(normalized.secondStatePensionAge, null);
+    normalized.initialStatePension = ensureNumberValue(normalized.initialStatePension, 0);
+
+    if (normalized.name && typeof normalized.name !== 'string') {
+        normalized.name = String(normalized.name);
+    }
+
+    return normalized;
+}
+
+function applyModelData(rawData, nameHint) {
+    const normalized = normalizeModelData(rawData);
+    const displayName = nameHint ?? normalized.name ?? '';
+
+    if (displayName) {
+        normalized.name = displayName;
+    }
+
+    sortLists(normalized);
+    setupUI(normalized);
+
+    const titleNameSpan = document.getElementById('projectionName');
+    if (titleNameSpan) {
+        titleNameSpan.innerText = normalized.name || '';
+    }
+
+    return normalized.name || displayName || '';
+}
+
 function openNotesModal(item, onSaveCallback) {
     const modal = document.getElementById("notesModal")
     if (!modal) {
@@ -379,37 +461,118 @@ function handleLoad() {
         return;
     }
 
-    const titleNameSpan = document.getElementById('projectionName');
-
     const loaded = loadModelFromLocalStorage(name);
     if (loaded) {
-        loaded.name = name;
-        titleNameSpan.innerText = name;
-
-        sortLists(loaded)
-
-        model = createReactiveModel(loaded, () => updateProjection());
-        setupUI(loaded);
+        try {
+            applyModelData(loaded, name);
+        } catch (error) {
+            console.error('Failed to load model:', error);
+            alert(`Failed to load model "${name}": ${error.message || error}`);
+        }
     } else {
         alert(`Failed to load model "${name}".`);
     }
 }
 
+function handleImportFile(event) {
+    const input = event.target;
+    if (!input || !input.files || input.files.length === 0) {
+        return;
+    }
+
+    const file = input.files[0];
+    const reader = new FileReader();
+
+    reader.onload = () => {
+        try {
+            const text = reader.result;
+            const parsed = JSON.parse(text);
+            const fallbackName = (file.name || 'Imported Model').replace(/\.[^.]+$/, '');
+            const appliedName = applyModelData(parsed, parsed.name || fallbackName);
+            alert(`Imported model "${appliedName || fallbackName}".`);
+        } catch (error) {
+            console.error('Failed to import model:', error);
+            alert(`Failed to import model: ${error.message || error}`);
+        } finally {
+            input.value = '';
+        }
+    };
+
+    reader.onerror = () => {
+        console.error('Failed to read file:', reader.error);
+        alert('Failed to read the selected file.');
+        input.value = '';
+    };
+
+    reader.readAsText(file);
+}
+
+function cleanModelBeforeExport(rawModel) {
+    const cleaned = structuredClone(rawModel);
+    delete cleaned.__isOurProxy;
+    for (const key in cleaned) {
+        if (cleaned[key] && typeof cleaned[key] === 'object') {
+            delete cleaned[key].__isOurProxy;
+        }
+    }
+    return cleaned;
+}
+
+function handleExport() {
+    if (!model) {
+        alert('No model available to export.');
+        return;
+    }
+
+    const currentData = cleanModelBeforeExport(model.getRawData());
+    const name = currentData.name ? String(currentData.name).trim() : 'model';
+    const timestamp = new Date().toISOString().replace(/[:.-]/g, '').slice(0, 15);
+    const fileName = `${name || 'model'}-${timestamp}.json`;
+
+    const blob = new Blob([JSON.stringify(currentData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+}
+
 // when we load a scenario sort the lists by age
 function sortLists(model) {
-    model.grossExpenditureRates = model.grossExpenditureRates.sort((item1, item2) => item1.age > item2.age)
-    model.lumpSums = model.lumpSums.sort((item1, item2) => item1.age > item2.age)
-    model.otherAnnualIncomes = model.otherAnnualIncomes.sort((item1, item2) => item1.age > item2.age)
+    const compareByAge = (item1, item2) => {
+        const age1 = item1 && typeof item1.age === 'number' ? item1.age : Number.MAX_SAFE_INTEGER;
+        const age2 = item2 && typeof item2.age === 'number' ? item2.age : Number.MAX_SAFE_INTEGER;
+        return age1 - age2;
+    };
+
+    model.grossExpenditureRates = (model.grossExpenditureRates || []).sort(compareByAge);
+    model.lumpSums = (model.lumpSums || []).sort(compareByAge);
+    model.otherAnnualIncomes = (model.otherAnnualIncomes || []).sort(compareByAge);
 }
 
 window.addEventListener('DOMContentLoaded', () => {
     const saveBtn = document.getElementById('saveModelBtn');
     const loadBtn = document.getElementById('loadModelBtn');
     const savedModelsDropdown = document.getElementById('savedModelsDropdown');
+    const importBtn = document.getElementById('importModelBtn');
+    const importInput = document.getElementById('importModelInput');
+    const exportBtn = document.getElementById('exportModelBtn');
 
     if (saveBtn) saveBtn.addEventListener('click', handleSave);
     if (loadBtn) loadBtn.addEventListener('click', handleLoad);
     if (savedModelsDropdown) savedModelsDropdown.addEventListener('change', handleLoad)
+    if (importBtn && importInput) {
+        importBtn.addEventListener('click', () => importInput.click());
+        importInput.addEventListener('change', handleImportFile);
+    }
+    if (exportBtn) {
+        exportBtn.addEventListener('click', handleExport);
+    }
 
     refreshSavedModelsDropdown();
 });
