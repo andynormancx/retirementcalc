@@ -88,6 +88,8 @@
             <span class="input-group-addon addon-sm">£</span>
             <input data-bind="grossExpenditureRates.amount" type="number"  step="100" class="form-input input-sm" placeholder="+ or -">
             <span>&nbsp;</span>
+            <button class="btn btn-action input-group-btn btn-sm notes-btn"><i class="icon icon-note"></i></button>
+            <span>&nbsp;</span>
             <button class="btn btn-action input-group-btn btn-sm remove-btn"><i class="icon icon-delete"></i></button>
         </div>
     </div>
@@ -106,6 +108,8 @@
             <label class="form-checkbox input-sm">
                 <input type="checkbox" data-bind="otherAnnualIncomes.adjustForInflation"><i class="form-icon"></i>Inflation
             </label>
+            <button class="btn btn-action input-group-btn btn-sm notes-btn"><i class="icon icon-note"></i></button>
+            <span>&nbsp;</span>
             <button class="btn btn-action input-group-btn btn-sm remove-btn"><i class="icon icon-delete"></i></button>
         </div>
     </div>
@@ -132,16 +136,7 @@
         </div>
     </div>    
 
-    <div class="columns">
-        <div class="column col-9">
-            <h3>Retirement Projection - <span id="projectionName"></span></h3>
-        </div>
-        <div class="column col-3 text-right">
-            <button id="notesModalOpenButton" class="btn btn-primary btn-sm" type="button">
-                Notes
-            </button>
-        </div>
-    </div>
+    <h3>Retirement Projection - <span id="projectionName"></span></h3>
     
     <p class="text-small text-muted">All values are gross, income tax and pension contribution tax refunds are not accounted for.
         All figures are adjusted for inflation, so are at current year prices.</p>
