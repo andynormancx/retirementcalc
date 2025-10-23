@@ -67,13 +67,59 @@ function debounce(func, delay) {
 
 const updateProjection = debounce(updateProjectionInt, 300);
 
-function openNotesModal(item) {
+function getNoteTooltipText(note) {
+    if (note === null || note === undefined) {
+        return 'Add note';
+    }
+    const firstLine = String(note).split(/\r?\n/)[0].trim();
+    return firstLine.length > 0 ? firstLine : 'Add note';
+}
+
+function formatCurrency(value) {
+    if (value === null || value === undefined || value === '') {
+        return '£0';
+    }
+    const numeric = Number(value);
+    if (Number.isNaN(numeric)) {
+        return String(value);
+    }
+    return `£${numeric.toLocaleString('en-GB')}`;
+}
+
+function getItemDetailsText(item) {
+    if (!item || typeof item !== 'object') {
+        return 'No additional details';
+    }
+
+    const details = [];
+
+    if (item.age !== null && item.age !== undefined) {
+        details.push(`Age: ${item.age}`);
+    }
+
+    if (item.amount !== null && item.amount !== undefined) {
+        details.push(`Amount: ${formatCurrency(item.amount)}`);
+    }
+
+    if ('adjustForInflation' in item) {
+        details.push(`Inflation-adjusted: ${item.adjustForInflation ? 'Yes' : 'No'}`);
+    }
+
+    if (details.length === 0) {
+        return 'No additional details';
+    }
+
+    return details.join(' • ');
+}
+
+function openNotesModal(item, onSaveCallback) {
     const modal = document.getElementById("notesModal")
     if (!modal) {
         return
     }
 
     const textarea = document.getElementById("notesModalTextarea")
+    const detailsContainer = document.getElementById("notesModalDetails")
     const updateButton = document.getElementById("notesModalUpdateButton")
     const cancelButton = document.getElementById("notesModalCancelButton")
     const closeButton = document.getElementById("notesModalCloseButton")
@@ -84,6 +130,9 @@ function openNotesModal(item) {
     }
 
     textarea.value = item.notes ?? ""
+    if (detailsContainer) {
+        detailsContainer.innerText = getItemDetailsText(item)
+    }
 
     const cleanup = () => {
         modal.classList.remove("active")
@@ -105,6 +154,9 @@ function openNotesModal(item) {
     updateButton.onclick = (event) => {
         event.preventDefault()
         item.notes = textarea.value
+        if (typeof onSaveCallback === 'function') {
+            onSaveCallback(item.notes)
+        }
         cleanup()
     }
 
@@ -193,9 +245,19 @@ function addListItem(listItems, item, container, template) {
 
     const notesBtn = clone.querySelector('.notes-btn');
     if (notesBtn) {
+        const refreshTooltip = () => {
+            notesBtn.setAttribute('data-tooltip', getNoteTooltipText(item.notes));
+        }
+
+        notesBtn.classList.add('tooltip', 'tooltip-left');
+        refreshTooltip();
+
         notesBtn.addEventListener('click', function () {
-            openNotesModal(item)
+            openNotesModal(item, refreshTooltip)
         });
+
+        // keep tooltip current on hover in case notes changed elsewhere
+        notesBtn.addEventListener('mouseenter', refreshTooltip);
     }
   
     container.appendChild(clone);    
