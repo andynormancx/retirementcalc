@@ -83,7 +83,8 @@ export function generateProjection(model) {
 
         const requiredAnnualWithdrawlInflationAdjusted =
             Math.max(annualGrossIncomeInflationAdjusted - annualStatePensionInflationAdjusted - otherGrossAnnualIncomeInflationAdjusted, 0);
-        const investmentGain = balance * annualReturn;
+        // Assume withdrawals are spread evenly through the year, so on average half is already gone when computing returns
+        const investmentGain = (balance - requiredAnnualWithdrawlInflationAdjusted / 2) * annualReturn;
 
         balance = balance + investmentGain;
         balance -= requiredAnnualWithdrawlInflationAdjusted
