@@ -4,7 +4,7 @@ export function getDefaultState(currentYear) {
     const defaults = {
         name: '',
         currentYear: currentYear,
-        initialBalance: 1100000,
+        initialBalance: 700000,
         annualReturn: 4.38,
         inflationRate: 2.0,
         grossIncome: 3000,
