@@ -250,45 +250,45 @@
                 </div>
             </div>
 
-            <div class="m-1"></div>
-            
+
             <div class="container">
                 <div class="columns">
-                    <div class="column col-2">
-                        <div class="input-group">
-                            <span class="input-group-addon addon-sm">Initial Balance (£)</span>
-                            <input data-bind="initialBalance" type="number" class="form-input input-sm" placeholder="amount" value="950000" step="10000">
-                        </div>
-                    </div>
-                    <div class="column col-2">
-                        <div class="input-group">
-                            <span class="input-group-addon addon-sm">Initial state pension (£)</span>
-                            <input data-bind="initialStatePension" type="number" class="form-input input-sm" placeholder="amount" value="12000" step="100">
+                    <div class="column col-5 col-lg-12">
+                        <div class="columns">
+                            <div class="column col-6">
+                                <div class="input-group">
+                                    <span class="input-group-addon addon-sm">Initial Balance (£)</span>
+                                    <input data-bind="initialBalance" type="number" class="form-input input-sm" placeholder="amount" value="950000" step="10000">
+                                </div>
+                            </div>
+                            <div class="column col-6">
+                                <div class="input-group">
+                                    <span class="input-group-addon addon-sm">Initial state pension (£)</span>
+                                    <input data-bind="initialStatePension" type="number" class="form-input input-sm" placeholder="amount" value="12000" step="100">
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="column col-1">
-                    </div>                    
-                    <div class="column col-3">
-                        <div class="input-group">
-                            <span class="input-group-addon addon-sm">First Birth Year</span>
-                            <input data-bind="firstBirthYear" type="number" class="form-input input-sm" placeholder="...">
-                        </div>
-                    </div>
-                    <div class="column col-3">
-                        <div class="input-group">
-                            <span class="input-group-addon addon-sm">Second Birth Year</span>
-                            <input data-bind="secondBirthYear" type="number" class="form-input input-sm" placeholder="...">
-                        </div>
-                    </div>
-                    <div class="column col-2">
-                        <div style="display: none;">
-                            <label for="grossIncome" class="form-label label-sm">Monthly Gross Income (£):</label>
-                            <input data-bind="grossIncome" class="form-input input-sm" type="number" id="grossIncome"
-                                value="3000">
+                    </div>  
+                    <div class="column col-5 col-lg-12">
+                        <div class="columns">
+                            <div class="column col-6">
+                                <div class="input-group">
+                                    <span class="input-group-addon addon-sm">First Birth Year</span>
+                                    <input data-bind="firstBirthYear" type="number" class="form-input input-sm" placeholder="...">
+                                </div>
+                            </div>
+                            <div class="column col-6">
+                                <div class="input-group">
+                                    <span class="input-group-addon addon-sm">Second Birth Year</span>
+                                    <input data-bind="secondBirthYear" type="number" class="form-input input-sm" placeholder="...">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>            
+            </div>
         </div>
     </div>
 
@@ -301,19 +301,19 @@
         <div class="accordion-body">
             <div class="container">
                 <div class="columns">
-                    <div class="column col-3">
+                    <div class="column col-3 col-lg-12">
                         <h5>Lump Sums</h5>
                         <button id="lumpSumsAddBtn" class="btn btn-action input-group-btn btn-sm btn-add"><i class="icon icon-plus"></i></button></span>
                         <div class="mt-2"></div>
                         <div id="lumpSumsContainer"></div>
                     </div>
-                    <div class="column col-3">
+                    <div class="column col-3 col-lg-12">
                         <h5>Monthly Gross Expenditure</h5>
                         <button id="grossIncomeRatesAddBtn" class="btn btn-action input-group-btn btn-sm btn-add"><i class="icon icon-plus"></i></button>
                         <div class="mt-2"></div>
                         <div id="grossIncomeRatesContainer"></div>
                     </div>
-                    <div class="column col-4">
+                    <div class="column col-4 col-lg-12">
                         <h5>Other Gross Annual Income</h5>
                         <div>
                             <button id="otherAnnualIncomeAddBtn" class="btn btn-action input-group-btn btn-sm btn-add"><i class="icon icon-plus"></i></button>

@@ -4,8 +4,8 @@ export function getDefaultState(currentYear) {
     const defaults = {
         name: '',
         currentYear: currentYear,
-        initialBalance: 950000,
-        annualReturn: 4.5,
+        initialBalance: 1100000,
+        annualReturn: 4.38,
         inflationRate: 2.0,
         grossIncome: 3000,
         firstBirthYear: 1971,
@@ -52,7 +52,7 @@ export function getDefaultState(currentYear) {
                 id: uuidv4(),
                 age: currentFirstAge,
                 amount: 1000,
-                adjustForInflation: false,
+                adjustForInflation: true,
                 notes: ''
             },
         ]

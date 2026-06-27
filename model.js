@@ -161,7 +161,8 @@ export function generateProjection(model) {
         line: { color: 'red' }
     };
 
-    const data = [traceBalances, traceStatePension, traceAnnualWithdrawls];
+    const data = [traceBalances];
+    //const data = [traceBalances, traceStatePension, traceAnnualWithdrawls];
 
     const layout = {
         xaxis: { title: 'Age', range: [startYear - firstBirthYear - 1, 100] },
