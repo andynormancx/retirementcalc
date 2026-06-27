@@ -4,9 +4,52 @@ import { uuidv4 } from './state.js?v=1'
 
 let model = null
 
+function buildAgeSelectOptions(selectEl, currentValue) {
+    const firstBirthYear = model ? model.firstBirthYear : null;
+    const secondBirthYear = model ? model.secondBirthYear : null;
+    const currentYear = new Date().getFullYear();
+
+    selectEl.innerHTML = '';
+
+    const blank = document.createElement('option');
+    blank.value = '';
+    blank.textContent = '—';
+    selectEl.appendChild(blank);
+
+    if (!firstBirthYear) {
+        selectEl.value = '';
+        return;
+    }
+
+    const minAge = Math.max(currentYear - firstBirthYear, 0);
+    const maxAge = 105;
+
+    for (let age = minAge; age <= maxAge; age++) {
+        const year = firstBirthYear + age;
+        const opt = document.createElement('option');
+        opt.value = age;
+        let label = `${year} (${age}`;
+        if (secondBirthYear) {
+            label += `/${year - secondBirthYear}`;
+        }
+        label += ')';
+        opt.textContent = label;
+        selectEl.appendChild(opt);
+    }
+
+    selectEl.value = currentValue ?? '';
+}
+
+function refreshAllAgeSelects() {
+    document.querySelectorAll('[data-age-select]').forEach(sel => {
+        buildAgeSelectOptions(sel, sel.value === '' ? null : parseFloat(sel.value));
+    });
+}
+
 export function setupUI(defaultState) {
     model = createReactiveModel(defaultState, () => {
-        updateProjection()
+        updateProjection();
+        refreshAllAgeSelects();
     });
 
     setupList('otherAnnualIncomeContainer', 'otherAnnualIncomeTemplate',
@@ -277,6 +320,7 @@ function bindInputs() {
 
 function bindChildElements(parentElement, modelToBind, ignoreNestedBindings) {
     parentElement.querySelectorAll('[data-bind]').forEach(input => {
+        if (input.hasAttribute('data-age-select')) return;
         const keyParts = input.dataset.bind.split('.')
         let key = null
         
@@ -333,9 +377,16 @@ function setupList(listContainerId, listTemplateId, listData, createEmptyItemHan
 
 function addListItem(listItems, item, container, template) {
     const clone = template.content.cloneNode(true);
-  
+
     const itemElement = clone.firstElementChild;
     bindChildElements(itemElement, item, false);
+
+    itemElement.querySelectorAll('[data-age-select]').forEach(sel => {
+        buildAgeSelectOptions(sel, item.age);
+        sel.onchange = () => {
+            item.age = sel.value === '' ? null : parseFloat(sel.value);
+        };
+    });
 
     const removeBtn = clone.querySelector('.remove-btn');
     if (removeBtn) {

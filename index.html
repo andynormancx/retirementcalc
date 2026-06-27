@@ -92,8 +92,7 @@
 <template id="lumpSumTemplate">
     <div class="lump-sum-entry">
         <div class="input-group">
-            <span class="input-group-addon addon-sm">Age</span>
-            <input data-bind="otherAnnualIncomes.age" type="number" class="form-input input-sm" placeholder="first person's age">
+            <select data-bind="otherAnnualIncomes.age" data-age-select class="form-select select-sm"></select>
             <span>&nbsp;</span>
             <span class="input-group-addon addon-sm">£</span>
             <input data-bind="otherAnnualIncomes.amount" type="number"  step="1000" class="form-input input-sm" placeholder="+ or -">
@@ -109,8 +108,7 @@
 <template id="grossIncomeRateTemplate">
     <div class="grossincome-rate-entry">
         <div class="input-group">
-            <span class="input-group-addon addon-sm">Age</span>
-            <input data-bind="grossExpenditureRates.age" type="number" class="form-input input-sm" placeholder="first person's age">
+            <select data-bind="grossExpenditureRates.age" data-age-select class="form-select select-sm"></select>
             <span>&nbsp;</span>
             <span class="input-group-addon addon-sm">£</span>
             <input data-bind="grossExpenditureRates.amount" type="number"  step="100" class="form-input input-sm" placeholder="+ or -">
@@ -126,8 +124,7 @@
 <template id="otherAnnualIncomeTemplate">
     <div class="otherAnnualIncome-entry">
         <div class="input-group">
-            <span class="input-group-addon addon-sm">Age</span>
-            <input data-bind="otherAnnualIncomes.age" type="number" class="form-input input-sm" placeholder="first person's age">
+            <select data-bind="otherAnnualIncomes.age" data-age-select class="form-select select-sm"></select>
             <span>&nbsp;</span>
             <span class="input-group-addon addon-sm">£</span>
             <input data-bind="otherAnnualIncomes.amount" type="number"  step="100" class="form-input input-sm" placeholder="+ or -">
