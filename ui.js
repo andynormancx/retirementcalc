@@ -1,6 +1,6 @@
-import { createReactiveModel, makeReactive } from './model.js';
-import { generateProjection } from './model.js';
-import { uuidv4 } from './state.js'
+import { createReactiveModel, makeReactive } from './model.js?v=1';
+import { generateProjection } from './model.js?v=1';
+import { uuidv4 } from './state.js?v=1'
 
 let model = null
 
