@@ -133,9 +133,21 @@ export function generateProjection(model) {
         monthlyWithdrawlsBeforeInflation.push(Math.round(currentGrossIncome));
     }
 
+    const customdata = years.map((_, i) => [agesFirst[i], agesSecond[i]]);
+    const hovertemplate = '%{x} (ages %{customdata[0]}/%{customdata[1]})<br>£%{y:,.0f}<extra></extra>';
+
+    const tickStep = 5;
+    const tickvals = years.filter((_, i) => agesFirst[i] % tickStep === 0);
+    const ticktext = tickvals.map((yr, i) => {
+        const idx = years.indexOf(yr);
+        return `${yr}<br>(${agesFirst[idx]}/${agesSecond[idx]})`;
+    });
+
     const traceBalances = {
-        x: agesFirst,
+        x: years,
         y: balances,
+        customdata,
+        hovertemplate,
         type: 'scatter',
         mode: 'lines+markers',
         name: 'Balance (£)'
@@ -143,8 +155,10 @@ export function generateProjection(model) {
 
     // Define the second trace
     const traceStatePension = {
-        x: agesFirst,
+        x: years,
         y: statePensions,
+        customdata,
+        hovertemplate,
         type: 'scatter',
         mode: 'lines+markers',
         name: 'State Pension (£)',
@@ -152,8 +166,10 @@ export function generateProjection(model) {
     };
 
     const traceAnnualWithdrawls = {
-        x: agesFirst,
+        x: years,
         y: annualWithdrawls,
+        customdata,
+        hovertemplate,
         type: 'scatter',
         mode: 'lines+markers',
         name: 'Annual (£)',
@@ -164,7 +180,7 @@ export function generateProjection(model) {
     //const data = [traceBalances, traceStatePension, traceAnnualWithdrawls];
 
     const layout = {
-        xaxis: { title: 'Age', range: [startYear - firstBirthYear - 1, 100] },
+        xaxis: { tickvals, ticktext, range: [startYear - 1, firstBirthYear + 101] },
         yaxis: { title: 'Balance (£)', tickformat: ',' },
         height: 600
     };
