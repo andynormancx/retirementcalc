@@ -80,7 +80,7 @@ function listSavedModels() {
     const models = [];
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key.startsWith('retirementModel:')) {
+        if (key.startsWith('retirementModel:') && key !== LAST_LOADED_KEY) {
             models.push(key.replace('retirementModel:', ''));
         }
     }
