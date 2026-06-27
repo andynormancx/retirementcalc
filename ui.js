@@ -66,21 +66,36 @@ export function setupUI(defaultState) {
 }
 
 const LAST_LOADED_KEY = 'retirementModel:__lastLoaded';
+const LAST_SAVED_KEY = 'retirementModel:__lastSaved';
 const DEFAULT_NAME = 'Default';
 
-function getLastLoadedName() {
-    return localStorage.getItem(LAST_LOADED_KEY);
+function setLastActivity(key, name) {
+    localStorage.setItem(key, JSON.stringify({ name, time: Date.now() }));
 }
 
-function setLastLoadedName(name) {
-    localStorage.setItem(LAST_LOADED_KEY, name);
+function getLastActivityName(key) {
+    try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : null;
+    } catch {
+        return null;
+    }
+}
+
+function getMostRecentActivityName() {
+    const loaded = getLastActivityName(LAST_LOADED_KEY);
+    const saved = getLastActivityName(LAST_SAVED_KEY);
+    if (!loaded && !saved) return null;
+    if (!loaded) return saved.name;
+    if (!saved) return loaded.name;
+    return loaded.time >= saved.time ? loaded.name : saved.name;
 }
 
 function listSavedModels() {
     const models = [];
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key.startsWith('retirementModel:') && key !== LAST_LOADED_KEY) {
+        if (key.startsWith('retirementModel:') && key !== LAST_LOADED_KEY && key !== LAST_SAVED_KEY) {
             models.push(key.replace('retirementModel:', ''));
         }
     }
@@ -260,7 +275,7 @@ function applyModelData(rawData, nameHint) {
     setupUI(normalized);
 
     if (displayName) {
-        setLastLoadedName(displayName);
+        setLastActivity(LAST_LOADED_KEY, displayName);
     }
 
     const titleNameSpan = document.getElementById('projectionName');
@@ -513,6 +528,7 @@ function handleSave() {
     titleNameSpan.innerText = name;
 
     saveModelToLocalStorage(model, name);
+    setLastActivity(LAST_SAVED_KEY, name);
     refreshSavedModelsDropdown();
     alert(`Model "${name}" saved.`);
 }
@@ -615,9 +631,9 @@ export function loadStartupScenario() {
         refreshSavedModelsDropdown();
         applyModelData(model.getRawData(), DEFAULT_NAME);
     } else {
-        const lastLoaded = getLastLoadedName();
-        const nameToLoad = (lastLoaded && listSavedModels().includes(lastLoaded))
-            ? lastLoaded
+        const recent = getMostRecentActivityName();
+        const nameToLoad = (recent && listSavedModels().includes(recent))
+            ? recent
             : DEFAULT_NAME;
         const loaded = loadModelFromLocalStorage(nameToLoad);
         if (loaded) applyModelData(loaded, nameToLoad);
