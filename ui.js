@@ -1,6 +1,6 @@
-import { createReactiveModel, makeReactive } from './model.js?v=1';
-import { generateProjection } from './model.js?v=1';
-import { uuidv4 } from './state.js?v=1'
+import { createReactiveModel, makeReactive } from './model.js?v=2';
+import { generateProjection } from './model.js?v=2';
+import { uuidv4 } from './state.js?v=2'
 
 let model = null
 
@@ -63,6 +63,17 @@ export function setupUI(defaultState) {
 
     bindInputs()
     updateProjection()
+}
+
+const LAST_LOADED_KEY = 'retirementModel:__lastLoaded';
+const DEFAULT_NAME = 'Default';
+
+function getLastLoadedName() {
+    return localStorage.getItem(LAST_LOADED_KEY);
+}
+
+function setLastLoadedName(name) {
+    localStorage.setItem(LAST_LOADED_KEY, name);
 }
 
 function listSavedModels() {
@@ -247,6 +258,10 @@ function applyModelData(rawData, nameHint) {
 
     sortLists(normalized);
     setupUI(normalized);
+
+    if (displayName) {
+        setLastLoadedName(displayName);
+    }
 
     const titleNameSpan = document.getElementById('projectionName');
     if (titleNameSpan) {
@@ -591,6 +606,22 @@ function handleExport() {
     document.body.removeChild(link);
 
     URL.revokeObjectURL(url);
+}
+
+export function loadStartupScenario() {
+    const hasDefault = listSavedModels().includes(DEFAULT_NAME);
+    if (!hasDefault) {
+        saveModelToLocalStorage(model, DEFAULT_NAME);
+        refreshSavedModelsDropdown();
+        applyModelData(model.getRawData(), DEFAULT_NAME);
+    } else {
+        const lastLoaded = getLastLoadedName();
+        const nameToLoad = (lastLoaded && listSavedModels().includes(lastLoaded))
+            ? lastLoaded
+            : DEFAULT_NAME;
+        const loaded = loadModelFromLocalStorage(nameToLoad);
+        if (loaded) applyModelData(loaded, nameToLoad);
+    }
 }
 
 // when we load a scenario sort the lists by age
