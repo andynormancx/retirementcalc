@@ -27,7 +27,7 @@ jobs:
         run: |
           VERSION=$(git rev-parse --short HEAD)
           echo "Stamping version $VERSION"
-          sed -i "s/?v=[^'\"&]*/?v=$VERSION/g" interactive.html projection.js ui.js
+          sed -i "s/?v=[^'\"&]*/?v=$VERSION/g" index.html projection.js ui.js
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
