@@ -115,8 +115,6 @@ export function generateProjection(model) {
             <td>${formatCurrency(otherGrossAnnualIncomeInflationAdjusted)}</td>
             <td>${formatCurrency(lumpTotal)}</td>
             <td>${formatCurrency(requiredAnnualWithdrawlInflationAdjusted)}</td>
-            <td>${formatCurrency(requiredAnnualWithdrawlInflationAdjusted * 0.2)}</td>
-            <td>${formatCurrency(requiredAnnualWithdrawlInflationAdjusted * 0.8)}</td>
             <td>${formatCurrency(investmentGain)}</td>                    
             <td>${formatCurrency(gainLoss)}</td>
             <td>${gainLossPct.toFixed(2)}%</td>
